@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <Nullable>disable</Nullable>
+        <TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
+        <LangVersion>9</LangVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Reference Include="CompDevLib">
+        <HintPath>..\External\CompDevLib.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+</Project>

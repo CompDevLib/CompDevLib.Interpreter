@@ -2,7 +2,7 @@ using System;
 
 namespace CompDevLib.Interpreter.Parse
 {
-    public delegate NodeValueInfo ValueSelector(ASTContext context);
+    public delegate ValueInfo ValueSelector(CompEnvironment context);
 
     public class VariableAstNode : ASTNode
     {
@@ -21,7 +21,7 @@ namespace CompDevLib.Interpreter.Parse
             Delegate = selectValueDel;
         }
 
-        public override NodeValueInfo Evaluate(ASTContext context)
+        public override ValueInfo Evaluate(CompEnvironment context)
         {
             return Delegate(context);
         }
@@ -39,7 +39,7 @@ namespace CompDevLib.Interpreter.Parse
     
     public class IntValueAstNode : ValueAstNode<int>
     {
-        public override NodeValueInfo Evaluate(ASTContext context)
+        public override ValueInfo Evaluate(CompEnvironment context)
         {
             return context.AppendEvaluationResult(Value);
         }
@@ -50,7 +50,7 @@ namespace CompDevLib.Interpreter.Parse
     }
     public class FloatValueAstNode : ValueAstNode<float>
     {
-        public override NodeValueInfo Evaluate(ASTContext context)
+        public override ValueInfo Evaluate(CompEnvironment context)
         {
             return context.AppendEvaluationResult(Value);
         }
@@ -61,7 +61,7 @@ namespace CompDevLib.Interpreter.Parse
     }
     public class BoolValueAstNode : ValueAstNode<bool>
     {
-        public override NodeValueInfo Evaluate(ASTContext context)
+        public override ValueInfo Evaluate(CompEnvironment context)
         {
             return context.AppendEvaluationResult(Value);
         }
@@ -72,7 +72,7 @@ namespace CompDevLib.Interpreter.Parse
     }
     public class StringValueAstNode : ValueAstNode<string>
     {
-        public override NodeValueInfo Evaluate(ASTContext context)
+        public override ValueInfo Evaluate(CompEnvironment context)
         {
             return context.AppendEvaluationResult(Value);
         }
@@ -88,7 +88,7 @@ namespace CompDevLib.Interpreter.Parse
         {
         }
 
-        public override NodeValueInfo Evaluate(ASTContext context)
+        public override ValueInfo Evaluate(CompEnvironment context)
         {
             return context.AppendEvaluationResult(Value);
         }

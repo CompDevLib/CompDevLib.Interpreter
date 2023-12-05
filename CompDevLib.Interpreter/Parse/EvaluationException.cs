@@ -4,11 +4,11 @@ namespace CompDevLib.Interpreter.Parse
 {
     public class EvaluationException : Exception
     {
-        public EvaluationException(EOpCode opCode, NodeValueInfo valueInfoA, NodeValueInfo valueInfoB)
+        public EvaluationException(EOpCode opCode, ValueInfo valueInfoA, ValueInfo valueInfoB)
         {
         }
         
-        public EvaluationException(EOpCode opCode, NodeValueInfo valueInfo)
+        public EvaluationException(EOpCode opCode, ValueInfo valueInfo)
         {
         }
 

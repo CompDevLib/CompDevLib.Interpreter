@@ -7,45 +7,45 @@ namespace CompDevLib.Interpreter.Parse
     {
         public Token Token;
 
-        public abstract NodeValueInfo Evaluate(ASTContext context);
+        public abstract ValueInfo Evaluate(CompEnvironment context);
 
-        public int GetIntValue(ASTContext context)
+        public int GetIntValue(CompEnvironment context)
         {
             var valueInfo = Evaluate(context);
             if (valueInfo.ValueType != EValueType.Int)
-                throw new Exception($"Invalid return type: {EValueType.Int} expected, {valueInfo.ValueType}");
-            return context.FixedDataBuffer.PopUnmanaged<int>();
+                throw new Exception($"Invalid return type: {EValueType.Int} expected, {valueInfo.ValueType} given.");
+            return context.EvaluationStack.GetUnmanaged<int>(valueInfo.Offset);
         }
         
-        public bool GetBoolValue(ASTContext context)
+        public bool GetBoolValue(CompEnvironment context)
         {
             var valueInfo = Evaluate(context);
             if (valueInfo.ValueType != EValueType.Bool)
-                throw new Exception($"Invalid return type: {EValueType.Bool} expected, {valueInfo.ValueType}");
-            return context.FixedDataBuffer.PopUnmanaged<bool>();
+                throw new Exception($"Invalid return type: {EValueType.Bool} expected, {valueInfo.ValueType} given.");
+            return context.EvaluationStack.GetUnmanaged<bool>(valueInfo.Offset);
         }
-        public float GetFloatValue(ASTContext context)
+        public float GetFloatValue(CompEnvironment context)
         {
             var valueInfo = Evaluate(context);
             if (valueInfo.ValueType != EValueType.Float)
-                throw new Exception($"Invalid return type: {EValueType.Float} expected, {valueInfo.ValueType}");
-            return context.FixedDataBuffer.PopUnmanaged<float>();
+                throw new Exception($"Invalid return type: {EValueType.Float} expected, {valueInfo.ValueType} given.");
+            return context.EvaluationStack.GetUnmanaged<float>(valueInfo.Offset);
         }
 
-        public string GetStringValue(ASTContext context)
+        public string GetStringValue(CompEnvironment context)
         {
             var valueInfo = Evaluate(context);
             if (valueInfo.ValueType != EValueType.Str)
-                throw new Exception($"Invalid return type: {EValueType.Str} expected, {valueInfo.ValueType}");
-            return context.FixedDataBuffer.PopObject<string>();
+                throw new Exception($"Invalid return type: {EValueType.Str} expected, {valueInfo.ValueType} given.");
+            return context.EvaluationStack.GetObject<string>(valueInfo.Offset);
         }
         
-        public T GetObjectValue<T>(ASTContext context) where T : class
+        public T GetObjectValue<T>(CompEnvironment context) where T : class
         {
             var valueInfo = Evaluate(context);
             if (valueInfo.ValueType != EValueType.Obj)
-                throw new Exception($"Invalid return type: {EValueType.Obj} expected, {valueInfo.ValueType}");
-            return context.FixedDataBuffer.PopObject<T>();
+                throw new Exception($"Invalid return type: {EValueType.Obj} expected, {valueInfo.ValueType} given.");
+            return context.EvaluationStack.GetObject<T>(valueInfo.Offset);
         }
     }
 }

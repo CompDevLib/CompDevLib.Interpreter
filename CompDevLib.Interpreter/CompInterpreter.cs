@@ -47,10 +47,11 @@ namespace CompDevLib.Interpreter
 
         private readonly Dictionary<ETokenType, EValueType> _values = new Dictionary<ETokenType, EValueType>
         {
-            { ETokenType.IDENTIFIER, EValueType.Obj },
-            { ETokenType.INT, EValueType.Int },
-            { ETokenType.FLOAT, EValueType.Float },
-            { ETokenType.STR, EValueType.Str },
+            {ETokenType.IDENTIFIER, EValueType.Obj},
+            {ETokenType.INT, EValueType.Int},
+            {ETokenType.FLOAT, EValueType.Float},
+            {ETokenType.BOOL, EValueType.Bool},
+            {ETokenType.STR, EValueType.Str},
         };
 
         private readonly Stack<Token> _operatorTokenStack;
@@ -71,7 +72,7 @@ namespace CompDevLib.Interpreter
             DefinedFunctions.Add(funcIdentifier, func);
         }
 
-        public EValueType Execute(TContext context, string instructionStr)
+        public ValueInfo Execute(TContext context, string instructionStr)
         {
             var instruction = BuildInstruction(instructionStr);
             return instruction.Execute(context);
@@ -79,10 +80,13 @@ namespace CompDevLib.Interpreter
 
         public T Execute<T>(TContext context, string instructionStr)
         {
+            var evaluationStack = context.Environment.EvaluationStack;
             var instruction = BuildInstruction(instructionStr);
-            var retValType = instruction.Execute(context);
+            var retValInfo = instruction.Execute(context);
             var expectedRetType = typeof(T);
-            switch (retValType)
+            // TODO: fix FixedDataBuffer's pop methods not returning value at correct offset
+            // TODO: change getting value at offset to pop
+            switch (retValInfo.ValueType)
             {
                 case EValueType.Void:
                     if (expectedRetType != typeof(void))
@@ -90,31 +94,31 @@ namespace CompDevLib.Interpreter
                     break;
                 case EValueType.Int:
                 {
-                    var retVal = context.ASTContext.FixedDataBuffer.PopUnmanaged<int>();
+                    var retVal = evaluationStack.GetUnmanaged<int>(retValInfo.Offset);
                     if (retVal is T parsedRetVal) return parsedRetVal;
                     throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(int));
                 }
                 case EValueType.Float:
                 {
-                    var retVal = context.ASTContext.FixedDataBuffer.PopUnmanaged<float>();
+                    var retVal = evaluationStack.GetUnmanaged<float>(retValInfo.Offset);
                     if (retVal is T parsedRetVal) return parsedRetVal;
                     throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(float));
                 }
                 case EValueType.Bool:
                 {
-                    var retVal = context.ASTContext.FixedDataBuffer.PopUnmanaged<bool>();
+                    var retVal = evaluationStack.GetUnmanaged<bool>(retValInfo.Offset);
                     if (retVal is T parsedRetVal) return parsedRetVal;
                     throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(bool));
                 }
                 case EValueType.Str:
                 {
-                    var retVal = context.ASTContext.FixedDataBuffer.PopObject<string>();
+                    var retVal = evaluationStack.GetObject<string>(retValInfo.Offset);
                     if (retVal is T parsedRetVal) return parsedRetVal;
                     throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(string));
                 }
                 case EValueType.Obj:
                 {
-                    var retVal = context.ASTContext.FixedDataBuffer.PopObject<object>();
+                    var retVal = evaluationStack.GetObject<object>(retValInfo.Offset);
                     if (retVal is T parsedRetVal) return parsedRetVal;
                     throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, retVal.GetType());
                 }

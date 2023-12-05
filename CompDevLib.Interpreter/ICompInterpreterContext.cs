@@ -4,6 +4,6 @@ namespace CompDevLib.Interpreter
 {
     public interface ICompInterpreterContext
     {
-        public ASTContext ASTContext { get; }
+        public CompEnvironment Environment { get; }
     }
 }

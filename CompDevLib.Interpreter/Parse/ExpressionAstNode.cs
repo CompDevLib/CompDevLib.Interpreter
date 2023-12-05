@@ -11,7 +11,7 @@ namespace CompDevLib.Interpreter.Parse
         {
         }
 
-        public override NodeValueInfo Evaluate(ASTContext context)
+        public override ValueInfo Evaluate(CompEnvironment context)
         {
             switch (Operands.Length)
             {

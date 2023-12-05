@@ -5,12 +5,12 @@ namespace UnitTest;
 
 public class Context : ICompInterpreterContext
 {
-    public ASTContext ASTContext => _astContext;
+    public CompEnvironment Environment => _compEnv;
 
-    private ASTContext _astContext;
+    private CompEnvironment _compEnv;
 
     public Context()
     {
-        _astContext = new ASTContext();
+        _compEnv = new CompEnvironment();
     }
 }

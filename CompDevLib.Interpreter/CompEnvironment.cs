@@ -1,54 +1,37 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using CompDevLib.Interpreter.Parse;
 using CompDevLib.Pool;
 
-namespace CompDevLib.Interpreter.Parse
+namespace CompDevLib.Interpreter
 {
-    public class ASTContext
+    public class CompEnvironment
     {
-        public readonly FixedDataBuffer FixedDataBuffer;
+        public readonly FixedDataBuffer EvaluationStack;
 
-        public ASTContext()
+        public CompEnvironment()
         {
-            FixedDataBuffer = new FixedDataBuffer();
+            EvaluationStack = new FixedDataBuffer();
         }
-        
-        public void Clear() => FixedDataBuffer.Clear();
-        
-        #region GetValues
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetInt(int offset) => FixedDataBuffer.GetUnmanaged<int>(offset);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool GetBool(int offset) => FixedDataBuffer.GetUnmanaged<bool>(offset);
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float GetFloat(int offset) => FixedDataBuffer.GetUnmanaged<float>(offset);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T GetObject<T>(int offset) where T : class 
-            => FixedDataBuffer.GetObject<T>(offset);
-        #endregion
-        
         #region Evaluate Operation
-        public NodeValueInfo Evaluate(EOpCode opCode, NodeValueInfo valueInfo)
+        public ValueInfo Evaluate(EOpCode opCode, ValueInfo valueInfo)
         {
             switch (valueInfo.ValueType)
             {
                 case EValueType.Int:
                 {
-                    var val = GetInt(valueInfo.Offset);
+                    var val = EvaluationStack.GetUnmanaged<int>(valueInfo.Offset);
                     return Evaluate(opCode, val);
                 }
                 case EValueType.Float:
                 {
-                    var val = GetFloat(valueInfo.Offset);
+                    var val = EvaluationStack.GetUnmanaged<float>(valueInfo.Offset);
                     return Evaluate(opCode, val);
                 }
                 case EValueType.Bool:
                 {
-                    var val = GetBool(valueInfo.Offset);
+                    var val = EvaluationStack.GetUnmanaged<bool>(valueInfo.Offset);
                     return Evaluate(opCode, val);
                 }
                 default:
@@ -56,23 +39,23 @@ namespace CompDevLib.Interpreter.Parse
             }
         }
         
-        public NodeValueInfo Evaluate(EOpCode opCode, NodeValueInfo valueInfoA, NodeValueInfo valueInfoB)
+        public ValueInfo Evaluate(EOpCode opCode, ValueInfo valueInfoA, ValueInfo valueInfoB)
         {
             switch (valueInfoA.ValueType)
             {
                 case EValueType.Int:
                 {
-                    var valueA = GetInt(valueInfoA.Offset);
+                    var valueA = EvaluationStack.GetUnmanaged<int>(valueInfoA.Offset);
                     switch (valueInfoB.ValueType)
                     {
                         case EValueType.Int:
                         {
-                            var valueB = GetInt(valueInfoB.Offset);
+                            var valueB = EvaluationStack.GetUnmanaged<int>(valueInfoB.Offset);
                             return Evaluate(opCode, valueA, valueB);
                         }
                         case EValueType.Float:
                         {
-                            var valueB = GetFloat(valueInfoB.Offset);
+                            var valueB = EvaluationStack.GetUnmanaged<float>(valueInfoB.Offset);
                             return Evaluate(opCode, valueA, valueB);
                         }
                     }
@@ -81,17 +64,17 @@ namespace CompDevLib.Interpreter.Parse
                 }
                 case EValueType.Float:
                 {
-                    var valueA = GetFloat(valueInfoA.Offset);
+                    var valueA = EvaluationStack.GetUnmanaged<float>(valueInfoA.Offset);
                     switch (valueInfoB.ValueType)
                     {
                         case EValueType.Int:
                         {
-                            var valueB = GetInt(valueInfoB.Offset);
+                            var valueB = EvaluationStack.GetUnmanaged<int>(valueInfoB.Offset);
                             return Evaluate(opCode, valueA, valueB);
                         }
                         case EValueType.Float:
                         {
-                            var valueB = GetFloat(valueInfoB.Offset);
+                            var valueB = EvaluationStack.GetUnmanaged<float>(valueInfoB.Offset);
                             return Evaluate(opCode, valueA, valueB);
                         }
                     }
@@ -100,20 +83,20 @@ namespace CompDevLib.Interpreter.Parse
                 }
                 case EValueType.Bool:
                 {
-                    var valueA = GetBool(valueInfoA.Offset);
+                    var valueA = EvaluationStack.GetUnmanaged<bool>(valueInfoA.Offset);
                     if (valueInfoB.ValueType == EValueType.Bool)
                     {
-                        var valueB = GetBool(valueInfoB.Offset);
+                        var valueB = EvaluationStack.GetUnmanaged<bool>(valueInfoB.Offset);
                         return Evaluate(opCode, valueA, valueB);
                     }
                     break;
                 }
                 case EValueType.Str:
                 {
-                    var valueA = GetObject<string>(valueInfoA.Offset);
+                    var valueA = EvaluationStack.GetObject<string>(valueInfoA.Offset);
                     if (valueInfoB.ValueType == EValueType.Str)
                     {
-                        var valueB = GetObject<string>(valueInfoB.Offset);
+                        var valueB = EvaluationStack.GetObject<string>(valueInfoB.Offset);
                         return Evaluate(opCode, valueA, valueB);
                     }
                     break;
@@ -123,7 +106,7 @@ namespace CompDevLib.Interpreter.Parse
             throw new EvaluationException(opCode, valueInfoA, valueInfoB);
         }
 
-        private NodeValueInfo Evaluate(EOpCode opCode, int valA, int valB)
+        private ValueInfo Evaluate(EOpCode opCode, int valA, int valB)
         {
             switch (opCode)
             {
@@ -154,7 +137,7 @@ namespace CompDevLib.Interpreter.Parse
             }
         }
         
-        private NodeValueInfo Evaluate(EOpCode opCode, float valA, float valB)
+        private ValueInfo Evaluate(EOpCode opCode, float valA, float valB)
         {
             switch (opCode)
             {
@@ -185,7 +168,7 @@ namespace CompDevLib.Interpreter.Parse
             }
         }
 
-        private NodeValueInfo Evaluate(EOpCode opCode, int valA, float valB)
+        private ValueInfo Evaluate(EOpCode opCode, int valA, float valB)
         {
             switch (opCode)
             {
@@ -216,7 +199,7 @@ namespace CompDevLib.Interpreter.Parse
             }
         }
 
-        private NodeValueInfo Evaluate(EOpCode opCode, float valA, int valB)
+        private ValueInfo Evaluate(EOpCode opCode, float valA, int valB)
         {
             switch (opCode)
             {
@@ -247,7 +230,7 @@ namespace CompDevLib.Interpreter.Parse
             }
         }
         
-        private NodeValueInfo Evaluate(EOpCode opCode, bool valA, bool valB)
+        private ValueInfo Evaluate(EOpCode opCode, bool valA, bool valB)
         {
             switch (opCode)
             {
@@ -264,7 +247,7 @@ namespace CompDevLib.Interpreter.Parse
             }
         }
         
-        private NodeValueInfo Evaluate(EOpCode opCode, string valA, string valB)
+        private ValueInfo Evaluate(EOpCode opCode, string valA, string valB)
         {
             switch (opCode)
             {
@@ -279,7 +262,7 @@ namespace CompDevLib.Interpreter.Parse
             }
         }
 
-        private NodeValueInfo Evaluate(EOpCode opCode, bool val)
+        private ValueInfo Evaluate(EOpCode opCode, bool val)
         {
             switch (opCode)
             {
@@ -290,7 +273,7 @@ namespace CompDevLib.Interpreter.Parse
             }
         }
 
-        private NodeValueInfo Evaluate(EOpCode opCode, int val)
+        private ValueInfo Evaluate(EOpCode opCode, int val)
         {
             switch (opCode)
             {
@@ -305,7 +288,7 @@ namespace CompDevLib.Interpreter.Parse
             }
         }
 
-        private NodeValueInfo Evaluate(EOpCode opCode, float val)
+        private ValueInfo Evaluate(EOpCode opCode, float val)
         {
             switch (opCode)
             {
@@ -322,52 +305,32 @@ namespace CompDevLib.Interpreter.Parse
         #endregion
 
         #region Evaluation Result
-        public NodeValueInfo AppendEvaluationResult(int value)
+        public ValueInfo AppendEvaluationResult(int value)
         {
-            var offset = FixedDataBuffer.PushUnmanaged(value);
-            return new NodeValueInfo
-            {
-                ValueType = EValueType.Int,
-                Offset = offset,
-            };
+            var offset = EvaluationStack.PushUnmanaged(value);
+            return new ValueInfo(EValueType.Int, offset);
         }
-        public NodeValueInfo AppendEvaluationResult(float value)
+        public ValueInfo AppendEvaluationResult(float value)
         {
-            var offset = FixedDataBuffer.PushUnmanaged(value);
-            return new NodeValueInfo
-            {
-                ValueType = EValueType.Float,
-                Offset = offset,
-            };
+            var offset = EvaluationStack.PushUnmanaged(value);
+            return new ValueInfo(EValueType.Float, offset);
         }
-        public NodeValueInfo AppendEvaluationResult(bool value)
+        public ValueInfo AppendEvaluationResult(bool value)
         {
-            var offset = FixedDataBuffer.PushUnmanaged(value);
-            return new NodeValueInfo
-            {
-                ValueType = EValueType.Bool,
-                Offset = offset,
-            };
+            var offset = EvaluationStack.PushUnmanaged(value);
+            return new ValueInfo(EValueType.Bool, offset);
         }
         
-        public NodeValueInfo AppendEvaluationResult(string value)
+        public ValueInfo AppendEvaluationResult(string value)
         {
-            var offset = FixedDataBuffer.PushObject(value);
-            return new NodeValueInfo
-            {
-                ValueType = EValueType.Str,
-                Offset = offset,
-            };
+            var offset = EvaluationStack.PushObject(value);
+            return new ValueInfo(EValueType.Str, offset);
         }
 
-        public NodeValueInfo AppendEvaluationResult(object value)
+        public ValueInfo AppendEvaluationResult(object value)
         {
-            var offset = FixedDataBuffer.PushObject(value);
-            return new NodeValueInfo
-            {
-                ValueType = EValueType.Obj,
-                Offset = offset,
-            };
+            var offset = EvaluationStack.PushObject(value);
+            return new ValueInfo(EValueType.Obj, offset);
         }
         #endregion
     }

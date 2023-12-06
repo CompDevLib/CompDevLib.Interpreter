@@ -7,6 +7,20 @@ namespace CompDevLib.Interpreter.Parse
     {
         public abstract ValueInfo Evaluate(CompEnvironment context);
 
+        public object GetAnyValue(CompEnvironment context)
+        {
+            var valueInfo = Evaluate(context);
+            return valueInfo.ValueType switch
+            {
+                EValueType.Int => context.EvaluationStack.GetUnmanaged<int>(valueInfo.Offset),
+                EValueType.Float => context.EvaluationStack.GetUnmanaged<float>(valueInfo.Offset),
+                EValueType.Bool => context.EvaluationStack.GetUnmanaged<bool>(valueInfo.Offset),
+                EValueType.Str => context.EvaluationStack.GetObject<string>(valueInfo.Offset),
+                EValueType.Obj => context.EvaluationStack.GetObject<object>(valueInfo.Offset),
+                _ => null
+            };
+        }
+
         public int GetIntValue(CompEnvironment context)
         {
             var valueInfo = Evaluate(context);

@@ -110,29 +110,29 @@ namespace CompDevLib.Interpreter
             switch (opCode)
             {
                 case EOpCode.Eq:
-                    return AppendEvaluationResult(valA == valB);
+                    return PushEvaluationResult(valA == valB);
                 case EOpCode.Ne:
-                    return AppendEvaluationResult(valA != valB);
+                    return PushEvaluationResult(valA != valB);
                 case EOpCode.Lt:
-                    return AppendEvaluationResult(valA < valB);
+                    return PushEvaluationResult(valA < valB);
                 case EOpCode.Gt:
-                    return AppendEvaluationResult(valA > valB);
+                    return PushEvaluationResult(valA > valB);
                 case EOpCode.Le:
-                    return AppendEvaluationResult(valA <= valB);
+                    return PushEvaluationResult(valA <= valB);
                 case EOpCode.Ge:
-                    return AppendEvaluationResult(valA >= valB);
+                    return PushEvaluationResult(valA >= valB);
                 case EOpCode.Add:
-                    return AppendEvaluationResult(valA + valB);
+                    return PushEvaluationResult(valA + valB);
                 case EOpCode.Sub:
-                    return AppendEvaluationResult(valA - valB);
+                    return PushEvaluationResult(valA - valB);
                 case EOpCode.Mult:
-                    return AppendEvaluationResult(valA * valB);
+                    return PushEvaluationResult(valA * valB);
                 case EOpCode.Div:
-                    return AppendEvaluationResult(valA / valB);
+                    return PushEvaluationResult(valA / valB);
                 case EOpCode.Mod:
-                    return AppendEvaluationResult(valA % valB);
+                    return PushEvaluationResult(valA % valB);
                 case EOpCode.Pow:
-                    return AppendEvaluationResult((int)MathF.Pow(valA, valB));
+                    return PushEvaluationResult((int)MathF.Pow(valA, valB));
                 default:
                     throw new EvaluationException(opCode, valA.GetType(), valB.GetType());
             }
@@ -143,29 +143,29 @@ namespace CompDevLib.Interpreter
             switch (opCode)
             {
                 case EOpCode.Eq:
-                    return AppendEvaluationResult(Math.Abs(valA - valB) <= float.Epsilon);
+                    return PushEvaluationResult(Math.Abs(valA - valB) <= float.Epsilon);
                 case EOpCode.Ne:
-                    return AppendEvaluationResult(Math.Abs(valA - valB) > float.Epsilon);
+                    return PushEvaluationResult(Math.Abs(valA - valB) > float.Epsilon);
                 case EOpCode.Lt:
-                    return AppendEvaluationResult(valA < valB);
+                    return PushEvaluationResult(valA < valB);
                 case EOpCode.Gt:
-                    return AppendEvaluationResult(valA > valB);
+                    return PushEvaluationResult(valA > valB);
                 case EOpCode.Le:
-                    return AppendEvaluationResult(valA <= valB);
+                    return PushEvaluationResult(valA <= valB);
                 case EOpCode.Ge:
-                    return AppendEvaluationResult(valA >= valB);
+                    return PushEvaluationResult(valA >= valB);
                 case EOpCode.Add:
-                    return AppendEvaluationResult(valA + valB);
+                    return PushEvaluationResult(valA + valB);
                 case EOpCode.Sub:
-                    return AppendEvaluationResult(valA - valB);
+                    return PushEvaluationResult(valA - valB);
                 case EOpCode.Mult:
-                    return AppendEvaluationResult(valA * valB);
+                    return PushEvaluationResult(valA * valB);
                 case EOpCode.Div:
-                    return AppendEvaluationResult(valA / valB);
+                    return PushEvaluationResult(valA / valB);
                 case EOpCode.Mod:
-                    return AppendEvaluationResult(valA % valB);
+                    return PushEvaluationResult(valA % valB);
                 case EOpCode.Pow:
-                    return AppendEvaluationResult(MathF.Pow(valA, valB));
+                    return PushEvaluationResult(MathF.Pow(valA, valB));
                 default:
                     throw new EvaluationException(opCode, valA.GetType(), valB.GetType());
             }
@@ -176,29 +176,29 @@ namespace CompDevLib.Interpreter
             switch (opCode)
             {
                 case EOpCode.Eq:
-                    return AppendEvaluationResult(Math.Abs(valA - valB) <= float.Epsilon);
+                    return PushEvaluationResult(Math.Abs(valA - valB) <= float.Epsilon);
                 case EOpCode.Ne:
-                    return AppendEvaluationResult(Math.Abs(valA - valB) > float.Epsilon);
+                    return PushEvaluationResult(Math.Abs(valA - valB) > float.Epsilon);
                 case EOpCode.Lt:
-                    return AppendEvaluationResult(valA < valB);
+                    return PushEvaluationResult(valA < valB);
                 case EOpCode.Gt:
-                    return AppendEvaluationResult(valA > valB);
+                    return PushEvaluationResult(valA > valB);
                 case EOpCode.Le:
-                    return AppendEvaluationResult(valA <= valB);
+                    return PushEvaluationResult(valA <= valB);
                 case EOpCode.Ge:
-                    return AppendEvaluationResult(valA >= valB);
+                    return PushEvaluationResult(valA >= valB);
                 case EOpCode.Add:
-                    return AppendEvaluationResult(valA + valB);
+                    return PushEvaluationResult(valA + valB);
                 case EOpCode.Sub:
-                    return AppendEvaluationResult(valA - valB);
+                    return PushEvaluationResult(valA - valB);
                 case EOpCode.Mult:
-                    return AppendEvaluationResult(valA * valB);
+                    return PushEvaluationResult(valA * valB);
                 case EOpCode.Div:
-                    return AppendEvaluationResult(valA / valB);
+                    return PushEvaluationResult(valA / valB);
                 case EOpCode.Mod:
-                    return AppendEvaluationResult(valA % valB);
+                    return PushEvaluationResult(valA % valB);
                 case EOpCode.Pow:
-                    return AppendEvaluationResult(MathF.Pow(valA, valB));
+                    return PushEvaluationResult(MathF.Pow(valA, valB));
                 default:
                     throw new EvaluationException(opCode, valA.GetType(), valB.GetType());
             }
@@ -209,29 +209,29 @@ namespace CompDevLib.Interpreter
             switch (opCode)
             {
                 case EOpCode.Eq:
-                    return AppendEvaluationResult(Math.Abs(valA - valB) <= float.Epsilon);
+                    return PushEvaluationResult(Math.Abs(valA - valB) <= float.Epsilon);
                 case EOpCode.Ne:
-                    return AppendEvaluationResult(Math.Abs(valA - valB) > float.Epsilon);
+                    return PushEvaluationResult(Math.Abs(valA - valB) > float.Epsilon);
                 case EOpCode.Lt:
-                    return AppendEvaluationResult(valA < valB);
+                    return PushEvaluationResult(valA < valB);
                 case EOpCode.Gt:
-                    return AppendEvaluationResult(valA > valB);
+                    return PushEvaluationResult(valA > valB);
                 case EOpCode.Le:
-                    return AppendEvaluationResult(valA <= valB);
+                    return PushEvaluationResult(valA <= valB);
                 case EOpCode.Ge:
-                    return AppendEvaluationResult(valA >= valB);
+                    return PushEvaluationResult(valA >= valB);
                 case EOpCode.Add:
-                    return AppendEvaluationResult(valA + valB);
+                    return PushEvaluationResult(valA + valB);
                 case EOpCode.Sub:
-                    return AppendEvaluationResult(valA - valB);
+                    return PushEvaluationResult(valA - valB);
                 case EOpCode.Mult:
-                    return AppendEvaluationResult(valA * valB);
+                    return PushEvaluationResult(valA * valB);
                 case EOpCode.Div:
-                    return AppendEvaluationResult(valA / valB);
+                    return PushEvaluationResult(valA / valB);
                 case EOpCode.Mod:
-                    return AppendEvaluationResult(valA % valB);
+                    return PushEvaluationResult(valA % valB);
                 case EOpCode.Pow:
-                    return AppendEvaluationResult(MathF.Pow(valA, valB));
+                    return PushEvaluationResult(MathF.Pow(valA, valB));
                 default:
                     throw new EvaluationException(opCode, valA.GetType(), valB.GetType());
             }
@@ -242,13 +242,13 @@ namespace CompDevLib.Interpreter
             switch (opCode)
             {
                 case EOpCode.Eq:
-                    return AppendEvaluationResult(valA == valB);
+                    return PushEvaluationResult(valA == valB);
                 case EOpCode.Ne:
-                    return AppendEvaluationResult(valA != valB);
+                    return PushEvaluationResult(valA != valB);
                 case EOpCode.And:
-                    return AppendEvaluationResult(valA && valB);
+                    return PushEvaluationResult(valA && valB);
                 case EOpCode.Or:
-                    return AppendEvaluationResult(valA || valB);
+                    return PushEvaluationResult(valA || valB);
                 default:
                     throw new EvaluationException(opCode, valA.GetType(), valB.GetType());
             }
@@ -259,11 +259,11 @@ namespace CompDevLib.Interpreter
             switch (opCode)
             {
                 case EOpCode.Eq:
-                    return AppendEvaluationResult(valA == valB);
+                    return PushEvaluationResult(valA == valB);
                 case EOpCode.Ne:
-                    return AppendEvaluationResult(valA != valB);
+                    return PushEvaluationResult(valA != valB);
                 case EOpCode.Add:
-                    return AppendEvaluationResult(valA + valB);
+                    return PushEvaluationResult(valA + valB);
                 default:
                     throw new EvaluationException(opCode, valA.GetType(), valB.GetType());
             }
@@ -274,7 +274,7 @@ namespace CompDevLib.Interpreter
             switch (opCode)
             {
                 case EOpCode.Not:
-                    return AppendEvaluationResult(!val);
+                    return PushEvaluationResult(!val);
                 default:
                     throw new EvaluationException(opCode, val.GetType());
             }
@@ -285,11 +285,11 @@ namespace CompDevLib.Interpreter
             switch (opCode)
             {
                 case EOpCode.Neg:
-                    return AppendEvaluationResult(-val);
+                    return PushEvaluationResult(-val);
                 case EOpCode.Inc:
-                    return AppendEvaluationResult(val + 1);
+                    return PushEvaluationResult(val + 1);
                 case EOpCode.Dec:
-                    return AppendEvaluationResult(val - 1);
+                    return PushEvaluationResult(val - 1);
                 default:
                     throw new EvaluationException(opCode, val.GetType());
             }
@@ -300,11 +300,11 @@ namespace CompDevLib.Interpreter
             switch (opCode)
             {
                 case EOpCode.Inc:
-                    return AppendEvaluationResult(val + 1);
+                    return PushEvaluationResult(val + 1);
                 case EOpCode.Dec:
-                    return AppendEvaluationResult(val - 1);
+                    return PushEvaluationResult(val - 1);
                 case EOpCode.Neg:
-                    return AppendEvaluationResult(-val);
+                    return PushEvaluationResult(-val);
                 default:
                     throw new EvaluationException(opCode, val.GetType());
             }
@@ -312,29 +312,29 @@ namespace CompDevLib.Interpreter
         #endregion
 
         #region Evaluation Result
-        public ValueInfo AppendEvaluationResult(int value)
+        public ValueInfo PushEvaluationResult(int value)
         {
             var offset = EvaluationStack.PushUnmanaged(value);
             return new ValueInfo(EValueType.Int, offset);
         }
-        public ValueInfo AppendEvaluationResult(float value)
+        public ValueInfo PushEvaluationResult(float value)
         {
             var offset = EvaluationStack.PushUnmanaged(value);
             return new ValueInfo(EValueType.Float, offset);
         }
-        public ValueInfo AppendEvaluationResult(bool value)
+        public ValueInfo PushEvaluationResult(bool value)
         {
             var offset = EvaluationStack.PushUnmanaged(value);
             return new ValueInfo(EValueType.Bool, offset);
         }
         
-        public ValueInfo AppendEvaluationResult(string value)
+        public ValueInfo PushEvaluationResult(string value)
         {
             var offset = EvaluationStack.PushObject(value);
             return new ValueInfo(EValueType.Str, offset);
         }
 
-        public ValueInfo AppendEvaluationResult(object value)
+        public ValueInfo PushEvaluationResult(object value)
         {
             var offset = EvaluationStack.PushObject(value);
             return new ValueInfo(EValueType.Obj, offset);

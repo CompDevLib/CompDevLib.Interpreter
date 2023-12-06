@@ -1,5 +1,3 @@
-using CompDevLib.Interpreter.Parse;
-
 namespace CompDevLib.Interpreter
 {
     public interface ICompInterpreterContext

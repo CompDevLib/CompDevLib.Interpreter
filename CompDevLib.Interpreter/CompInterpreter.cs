@@ -8,16 +8,16 @@ namespace CompDevLib.Interpreter
 {
     public class CompInterpreter<TContext> where TContext : ICompInterpreterContext
     {
-        public readonly Dictionary<string, CompInstruction<TContext>.Function> DefinedFunctions;
+        public readonly Dictionary<string, IFunction<TContext>> DefinedFunctions;
 
         private readonly Lexer _lexer;
 
         private struct OperatorInfo
         {
-            public EOpCode OpCode;
-            public byte OperandCount;
-            public byte Precedence;
-            public bool LeftAssociative;
+            public readonly EOpCode OpCode;
+            public readonly byte OperandCount;
+            public readonly byte Precedence;
+            public readonly bool LeftAssociative;
 
             public OperatorInfo(EOpCode opCode, byte operandCount, byte precedence, bool leftAssociative = true)
             {
@@ -63,18 +63,35 @@ namespace CompDevLib.Interpreter
 
         public CompInterpreter()
         {
-            DefinedFunctions = new Dictionary<string, CompInstruction<TContext>.Function>();
+            DefinedFunctions = new Dictionary<string, IFunction<TContext>>();
             _lexer = new Lexer();
             _operatorTokenStack = new Stack<Token>();
             _nodeStack = new Stack<ASTNode>();
             _result = new List<ASTNode>();
         }
+        
+        #region FunctionDefinition
+        
+        public void AddFunctionDefinition(string funcIdentifier, Delegate func)
+        {
+            var convertedFunction = new ConvertedFunction<TContext>(func);
+            DefinedFunctions.Add(funcIdentifier, convertedFunction);
+        }
+        
+        public void AddFunctionDefinition(string funcIdentifier, StandardFunction<TContext>.Function func)
+        {
+            var standardFunction = new StandardFunction<TContext>(func);
+            DefinedFunctions.Add(funcIdentifier, standardFunction);
+        }
 
-        public void AddFunctionDefinition(string funcIdentifier, CompInstruction<TContext>.Function func)
+        public void AddFunctionDefinition(string funcIdentifier, IFunction<TContext> func)
         {
             DefinedFunctions.Add(funcIdentifier, func);
         }
+        
+        #endregion
 
+        #region Execution
         public ValueInfo Execute(TContext context, string instructionStr)
         {
             var instruction = BuildInstruction(instructionStr);
@@ -145,7 +162,9 @@ namespace CompDevLib.Interpreter
 
             return default;
         }
+        #endregion
         
+        #region Parsing
         public CompInstruction<TContext> BuildInstruction(string instructionStr)
         {
             _lexer.Process(instructionStr);
@@ -180,7 +199,6 @@ namespace CompDevLib.Interpreter
             return new CompInstruction<TContext>(func, parameters);
         }
 
-        #region AST Parsing
         /// <summary>
         /// Parse tokens with expressions as parameters with shunting yard algorithm.
         /// </summary>

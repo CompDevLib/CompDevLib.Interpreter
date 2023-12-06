@@ -5,12 +5,10 @@ namespace CompDevLib.Interpreter
 {
     public class CompInstruction<TContext> where TContext : ICompInterpreterContext
     {
-        public delegate ValueInfo Function(TContext context, ASTNode[] parameters);
+        private readonly IFunction<TContext> _function;
+        private readonly ASTNode[] _parameters;
 
-        private Function _function;
-        private ASTNode[] _parameters;
-
-        public CompInstruction(Function func, ASTNode[] parameters)
+        public CompInstruction(IFunction<TContext> func, ASTNode[] parameters)
         {
             _function = func;
             _parameters = parameters;

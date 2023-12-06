@@ -1,4 +1,6 @@
-namespace CompDevLib.Interpreter.Parse
+using CompDevLib.Interpreter.Parse;
+
+namespace CompDevLib.Interpreter
 {
     public struct ValueInfo
     {

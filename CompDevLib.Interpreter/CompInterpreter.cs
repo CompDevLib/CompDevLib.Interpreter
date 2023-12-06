@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using CompDevLib.Interpreter.Tokenization;
 using CompDevLib.Interpreter.Parse;
+using CompDevLib.Pool;
+
 namespace CompDevLib.Interpreter
 {
     public class CompInterpreter<TContext> where TContext : ICompInterpreterContext
@@ -84,6 +86,23 @@ namespace CompDevLib.Interpreter
             var evaluationStack = context.Environment.EvaluationStack;
             var instruction = BuildInstruction(instructionStr);
             var retValInfo = instruction.Execute(context);
+            
+            return GetResult<T>(context.Environment.EvaluationStack, retValInfo, instructionStr);
+        }
+
+        public T EvaluateExpression<T>(TContext context, string expressionStr)
+        {
+            _lexer.Process(expressionStr);
+            var tokens = _lexer.GetTokens();
+            var parsedResult = ParseParameters(tokens, 0);
+            if (parsedResult.Length != 1)
+                throw new ArgumentException($"Unable to parse \"{expressionStr}\" as a single expression");
+            var result = parsedResult[0].Evaluate(context.Environment);
+            return GetResult<T>(context.Environment.EvaluationStack, result, expressionStr);
+        }
+
+        private T GetResult<T>(FixedDataBuffer evaluationStack, ValueInfo retValInfo, string instructionStr)
+        {
             var expectedRetType = typeof(T);
             // TODO: change getting value at offset to pop
             switch (retValInfo.ValueType)
@@ -161,6 +180,7 @@ namespace CompDevLib.Interpreter
             return new CompInstruction<TContext>(func, parameters);
         }
 
+        #region AST Parsing
         /// <summary>
         /// Parse tokens with expressions as parameters with shunting yard algorithm.
         /// </summary>
@@ -285,6 +305,6 @@ namespace CompDevLib.Interpreter
                 operands[i] = _nodeStack.Pop();
             return new ExpressionAstNode(operatorInfo.OpCode, operands);
         }
-
+        #endregion
     }
 }

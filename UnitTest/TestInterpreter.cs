@@ -11,7 +11,21 @@ public class TestInterpreter
     }
 
     [Test]
-    public void Test1()
+    public void TestExpression()
+    {
+        var interpreter = new CompInterpreter<Context>();
+        var context = new Context();
+        var expressionA = "(1 + 2 + 3 + 2 ^ 2) / 2 * 2 ^ 2 % 100";
+        int resultA = interpreter.EvaluateExpression<int>(context, expressionA);
+        Console.WriteLine($"{expressionA} == {resultA}");
+        
+        var expressionB = "((1 + 2 + 3 + 2 ^ 2) / 2) ^ 2 ^ 2 % 100";
+        int resultB = interpreter.EvaluateExpression<int>(context, expressionB);
+        Console.WriteLine($"{expressionB} == {resultB}");
+    }
+    
+    [Test]
+    public void TestInstruction()
     {
         var interpreter = new CompInterpreter<Context>();
         var testContext = new Context();

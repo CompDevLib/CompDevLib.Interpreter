@@ -104,7 +104,7 @@ namespace CompDevLib.Interpreter
             var instruction = BuildInstruction(instructionStr);
             var retValInfo = instruction.Execute(context);
             
-            return GetResult<T>(context.Environment.EvaluationStack, retValInfo, instructionStr);
+            return GetResult<T>(evaluationStack, retValInfo, instructionStr);
         }
 
         public T EvaluateExpression<T>(TContext context, string expressionStr)

@@ -107,7 +107,7 @@ public class TestInterpreter
         interpreter.AddFunctionDefinition("TestFunc2", TestFunc2);
 
         var stopwatch = Stopwatch.StartNew();
-        const int executionCount = 1;//10000;
+        const int executionCount = 10000000;
         for (int i = 0; i < executionCount; i++)
         {
             var retA = interpreter.Execute<float>(context, "TestFunc1: 12, 12.0, false");
@@ -121,6 +121,7 @@ public class TestInterpreter
             var retB = interpreter.Execute<float>(context, "TestFunc2: 12, 12.0, false");
             Assert.That((int) retB == 144);
         }
-        Console.WriteLine($"Standard function call time: {stopwatch.ElapsedMilliseconds}");
+        stopwatch.Stop();
+        Console.WriteLine($"Converted function call time: {stopwatch.ElapsedMilliseconds}");
     }
 }

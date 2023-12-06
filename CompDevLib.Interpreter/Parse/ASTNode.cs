@@ -12,11 +12,11 @@ namespace CompDevLib.Interpreter.Parse
             var valueInfo = Evaluate(context);
             return valueInfo.ValueType switch
             {
-                EValueType.Int => context.EvaluationStack.GetUnmanaged<int>(valueInfo.Offset),
-                EValueType.Float => context.EvaluationStack.GetUnmanaged<float>(valueInfo.Offset),
-                EValueType.Bool => context.EvaluationStack.GetUnmanaged<bool>(valueInfo.Offset),
-                EValueType.Str => context.EvaluationStack.GetObject<string>(valueInfo.Offset),
-                EValueType.Obj => context.EvaluationStack.GetObject<object>(valueInfo.Offset),
+                EValueType.Int => context.EvaluationStack.PopUnmanaged<int>(),
+                EValueType.Float => context.EvaluationStack.PopUnmanaged<float>(),
+                EValueType.Bool => context.EvaluationStack.PopUnmanaged<bool>(),
+                EValueType.Str => context.EvaluationStack.PopObject<string>(),
+                EValueType.Obj => context.EvaluationStack.PopObject<object>(),
                 _ => null
             };
         }
@@ -26,7 +26,7 @@ namespace CompDevLib.Interpreter.Parse
             var valueInfo = Evaluate(context);
             if (valueInfo.ValueType != EValueType.Int)
                 throw new Exception($"Invalid return type: {EValueType.Int} expected, {valueInfo.ValueType} given.");
-            return context.EvaluationStack.GetUnmanaged<int>(valueInfo.Offset);
+            return context.EvaluationStack.PopUnmanaged<int>();
         }
         
         public bool GetBoolValue(CompEnvironment context)
@@ -34,14 +34,14 @@ namespace CompDevLib.Interpreter.Parse
             var valueInfo = Evaluate(context);
             if (valueInfo.ValueType != EValueType.Bool)
                 throw new Exception($"Invalid return type: {EValueType.Bool} expected, {valueInfo.ValueType} given.");
-            return context.EvaluationStack.GetUnmanaged<bool>(valueInfo.Offset);
+            return context.EvaluationStack.PopUnmanaged<bool>();
         }
         public float GetFloatValue(CompEnvironment context)
         {
             var valueInfo = Evaluate(context);
             if (valueInfo.ValueType != EValueType.Float)
                 throw new Exception($"Invalid return type: {EValueType.Float} expected, {valueInfo.ValueType} given.");
-            return context.EvaluationStack.GetUnmanaged<float>(valueInfo.Offset);
+            return context.EvaluationStack.PopUnmanaged<float>();
         }
 
         public string GetStringValue(CompEnvironment context)
@@ -49,7 +49,7 @@ namespace CompDevLib.Interpreter.Parse
             var valueInfo = Evaluate(context);
             if (valueInfo.ValueType != EValueType.Str)
                 throw new Exception($"Invalid return type: {EValueType.Str} expected, {valueInfo.ValueType} given.");
-            return context.EvaluationStack.GetObject<string>(valueInfo.Offset);
+            return context.EvaluationStack.PopObject<string>();
         }
         
         public T GetObjectValue<T>(CompEnvironment context) where T : class
@@ -57,7 +57,7 @@ namespace CompDevLib.Interpreter.Parse
             var valueInfo = Evaluate(context);
             if (valueInfo.ValueType != EValueType.Obj)
                 throw new Exception($"Invalid return type: {EValueType.Obj} expected, {valueInfo.ValueType} given.");
-            return context.EvaluationStack.GetObject<T>(valueInfo.Offset);
+            return context.EvaluationStack.PopObject<T>();
         }
     }
 }

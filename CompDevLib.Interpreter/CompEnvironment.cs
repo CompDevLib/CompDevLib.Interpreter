@@ -20,17 +20,17 @@ namespace CompDevLib.Interpreter
             {
                 case EValueType.Int:
                 {
-                    var val = EvaluationStack.GetUnmanaged<int>(valueInfo.Offset);
+                    var val = EvaluationStack.PopUnmanaged<int>();
                     return Evaluate(opCode, val);
                 }
                 case EValueType.Float:
                 {
-                    var val = EvaluationStack.GetUnmanaged<float>(valueInfo.Offset);
+                    var val = EvaluationStack.PopUnmanaged<float>();
                     return Evaluate(opCode, val);
                 }
                 case EValueType.Bool:
                 {
-                    var val = EvaluationStack.GetUnmanaged<bool>(valueInfo.Offset);
+                    var val = EvaluationStack.PopUnmanaged<bool>();
                     return Evaluate(opCode, val);
                 }
                 default:
@@ -44,17 +44,17 @@ namespace CompDevLib.Interpreter
             {
                 case EValueType.Int:
                 {
-                    var valueA = EvaluationStack.GetUnmanaged<int>(valueInfoA.Offset);
+                    var valueA = EvaluationStack.PopUnmanaged<int>();
                     switch (valueInfoB.ValueType)
                     {
                         case EValueType.Int:
                         {
-                            var valueB = EvaluationStack.GetUnmanaged<int>(valueInfoB.Offset);
+                            var valueB = EvaluationStack.PopUnmanaged<int>();
                             return Evaluate(opCode, valueA, valueB);
                         }
                         case EValueType.Float:
                         {
-                            var valueB = EvaluationStack.GetUnmanaged<float>(valueInfoB.Offset);
+                            var valueB = EvaluationStack.PopUnmanaged<float>();
                             return Evaluate(opCode, valueA, valueB);
                         }
                     }
@@ -63,17 +63,17 @@ namespace CompDevLib.Interpreter
                 }
                 case EValueType.Float:
                 {
-                    var valueA = EvaluationStack.GetUnmanaged<float>(valueInfoA.Offset);
+                    var valueA = EvaluationStack.PopUnmanaged<float>();
                     switch (valueInfoB.ValueType)
                     {
                         case EValueType.Int:
                         {
-                            var valueB = EvaluationStack.GetUnmanaged<int>(valueInfoB.Offset);
+                            var valueB = EvaluationStack.PopUnmanaged<int>();
                             return Evaluate(opCode, valueA, valueB);
                         }
                         case EValueType.Float:
                         {
-                            var valueB = EvaluationStack.GetUnmanaged<float>(valueInfoB.Offset);
+                            var valueB = EvaluationStack.PopUnmanaged<float>();
                             return Evaluate(opCode, valueA, valueB);
                         }
                     }
@@ -82,20 +82,20 @@ namespace CompDevLib.Interpreter
                 }
                 case EValueType.Bool:
                 {
-                    var valueA = EvaluationStack.GetUnmanaged<bool>(valueInfoA.Offset);
+                    var valueA = EvaluationStack.PopUnmanaged<bool>();
                     if (valueInfoB.ValueType == EValueType.Bool)
                     {
-                        var valueB = EvaluationStack.GetUnmanaged<bool>(valueInfoB.Offset);
+                        var valueB = EvaluationStack.PopUnmanaged<bool>();
                         return Evaluate(opCode, valueA, valueB);
                     }
                     break;
                 }
                 case EValueType.Str:
                 {
-                    var valueA = EvaluationStack.GetObject<string>(valueInfoA.Offset);
+                    var valueA = EvaluationStack.PopObject<string>();
                     if (valueInfoB.ValueType == EValueType.Str)
                     {
-                        var valueB = EvaluationStack.GetObject<string>(valueInfoB.Offset);
+                        var valueB = EvaluationStack.PopObject<string>();
                         return Evaluate(opCode, valueA, valueB);
                     }
                     break;

@@ -73,6 +73,9 @@ namespace CompDevLib.Interpreter.Tokenization
 				case '%':
                     _tokens.Add(new Token { TokenType = ETokenType.MOD });
                     return 1;
+				case '^':
+					_tokens.Add(new Token { TokenType = ETokenType.POW });
+					return 1;
 				case '|':
 					if(length > 1 && pData[1] == '|')
 					{
@@ -126,6 +129,9 @@ namespace CompDevLib.Interpreter.Tokenization
 					return 1;
 				case ',':
 					_tokens.Add(new Token { TokenType = ETokenType.COMMA });
+					return 1;
+				case ':':
+					_tokens.Add(new Token { TokenType = ETokenType.COLON });
 					return 1;
 				case '(':
 					_tokens.Add(new Token { TokenType = ETokenType.OPEN_PR });

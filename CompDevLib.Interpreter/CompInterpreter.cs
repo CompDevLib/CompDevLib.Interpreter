@@ -39,6 +39,7 @@ namespace CompDevLib.Interpreter
             {ETokenType.MULT, new OperatorInfo(EOpCode.Mult, 2, 5)},
             {ETokenType.DIV, new OperatorInfo(EOpCode.Div, 2, 5)},
             {ETokenType.MOD, new OperatorInfo(EOpCode.Mod, 2, 5)},
+            {ETokenType.POW, new OperatorInfo(EOpCode.Pow, 2, 6)},
             {ETokenType.AND, new OperatorInfo(EOpCode.And, 2, 1)},
             {ETokenType.OR, new OperatorInfo(EOpCode.Or, 2, 1)},
             {ETokenType.NOT, new OperatorInfo(EOpCode.Not, 1, 1)},
@@ -84,7 +85,6 @@ namespace CompDevLib.Interpreter
             var instruction = BuildInstruction(instructionStr);
             var retValInfo = instruction.Execute(context);
             var expectedRetType = typeof(T);
-            // TODO: fix FixedDataBuffer's pop methods not returning value at correct offset
             // TODO: change getting value at offset to pop
             switch (retValInfo.ValueType)
             {
@@ -94,31 +94,31 @@ namespace CompDevLib.Interpreter
                     break;
                 case EValueType.Int:
                 {
-                    var retVal = evaluationStack.GetUnmanaged<int>(retValInfo.Offset);
+                    var retVal = evaluationStack.PopUnmanaged<int>();
                     if (retVal is T parsedRetVal) return parsedRetVal;
                     throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(int));
                 }
                 case EValueType.Float:
                 {
-                    var retVal = evaluationStack.GetUnmanaged<float>(retValInfo.Offset);
+                    var retVal = evaluationStack.PopUnmanaged<float>();
                     if (retVal is T parsedRetVal) return parsedRetVal;
                     throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(float));
                 }
                 case EValueType.Bool:
                 {
-                    var retVal = evaluationStack.GetUnmanaged<bool>(retValInfo.Offset);
+                    var retVal = evaluationStack.PopUnmanaged<bool>();
                     if (retVal is T parsedRetVal) return parsedRetVal;
                     throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(bool));
                 }
                 case EValueType.Str:
                 {
-                    var retVal = evaluationStack.GetObject<string>(retValInfo.Offset);
+                    var retVal = evaluationStack.PopObject<string>();
                     if (retVal is T parsedRetVal) return parsedRetVal;
                     throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(string));
                 }
                 case EValueType.Obj:
                 {
-                    var retVal = evaluationStack.GetObject<object>(retValInfo.Offset);
+                    var retVal = evaluationStack.PopObject<object>();
                     if (retVal is T parsedRetVal) return parsedRetVal;
                     throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, retVal.GetType());
                 }
@@ -131,7 +131,7 @@ namespace CompDevLib.Interpreter
         {
             _lexer.Process(instructionStr);
             var tokens = _lexer.GetTokens();
-            if (tokens.Count == 0)
+            if (tokens.Count == 0 || tokens.Count == 2)
                 throw new ArgumentException($"Unable to parse \"{instructionStr}\" to an instruction.");
 
             var funcIdentifierToken = tokens[0];
@@ -141,8 +141,11 @@ namespace CompDevLib.Interpreter
             
             if(!DefinedFunctions.TryGetValue(funcIdentifierToken.Value, out var func))
                 throw new ArgumentException($"Undefined function {funcIdentifierToken.Value}.");
+
+            if (tokens.Count > 2 && tokens[1].TokenType != ETokenType.COLON)
+                throw new ArgumentException($"Colon is expected between function identifier and parameters for instruction \"{instructionStr}\".");
             
-            var parameters = ParseParameters(tokens, 1);
+            var parameters = ParseParameters(tokens, 2);
             
             return new CompInstruction<TContext>(func, parameters);
         }
@@ -189,6 +192,12 @@ namespace CompDevLib.Interpreter
                 }
                 else if (token.TokenType == ETokenType.COMMA)
                 {
+                    while (_operatorTokenStack.Count > 0)
+                    {
+                        var topOperator = _operatorTokenStack.Pop();
+                        _nodeStack.Push(BuildExpressionNode(topOperator));
+                    }
+                    
                     var topNode = _nodeStack.Pop();
                     _result.Add(topNode);
                     if (_nodeStack.Count != 0)
@@ -209,15 +218,17 @@ namespace CompDevLib.Interpreter
                         {
                             _operatorTokenStack.Pop();
                             _nodeStack.Push(BuildExpressionNode(topOperator));
+                            continue;
                         }
+                        break;
                     }
 
                     _operatorTokenStack.Push(token);
                 }
                 else if (_values.ContainsKey(token.TokenType))
-                {
                     _nodeStack.Push(BuildValueNode(token));
-                }
+                else
+                    throw new Exception($"Unable to process token of type {token.TokenType} at the given position.");
             }
 
             while (_operatorTokenStack.Count > 0)
@@ -270,11 +281,9 @@ namespace CompDevLib.Interpreter
         {
             var operatorInfo = _opCodes[operatorToken.TokenType];
             var operands = new ASTNode[operatorInfo.OperandCount];
-            for (int i = 0; i < operatorInfo.OperandCount; i++)
-            {
+            for (int i = operatorInfo.OperandCount - 1; i >= 0; i--)
                 operands[i] = _nodeStack.Pop();
-            }
-            return new ExpressionAstNode(operatorToken, operands);
+            return new ExpressionAstNode(operatorInfo.OpCode, operands);
         }
 
     }

@@ -5,8 +5,6 @@ namespace CompDevLib.Interpreter.Parse
 {
     public abstract class ASTNode
     {
-        public Token Token;
-
         public abstract ValueInfo Evaluate(CompEnvironment context);
 
         public int GetIntValue(CompEnvironment context)

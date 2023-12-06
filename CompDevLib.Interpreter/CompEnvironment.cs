@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 using CompDevLib.Interpreter.Parse;
 using CompDevLib.Pool;
 
@@ -132,6 +131,8 @@ namespace CompDevLib.Interpreter
                     return AppendEvaluationResult(valA / valB);
                 case EOpCode.Mod:
                     return AppendEvaluationResult(valA % valB);
+                case EOpCode.Pow:
+                    return AppendEvaluationResult((int)MathF.Pow(valA, valB));
                 default:
                     throw new EvaluationException(opCode, valA.GetType(), valB.GetType());
             }
@@ -163,6 +164,8 @@ namespace CompDevLib.Interpreter
                     return AppendEvaluationResult(valA / valB);
                 case EOpCode.Mod:
                     return AppendEvaluationResult(valA % valB);
+                case EOpCode.Pow:
+                    return AppendEvaluationResult(MathF.Pow(valA, valB));
                 default:
                     throw new EvaluationException(opCode, valA.GetType(), valB.GetType());
             }
@@ -194,6 +197,8 @@ namespace CompDevLib.Interpreter
                     return AppendEvaluationResult(valA / valB);
                 case EOpCode.Mod:
                     return AppendEvaluationResult(valA % valB);
+                case EOpCode.Pow:
+                    return AppendEvaluationResult(MathF.Pow(valA, valB));
                 default:
                     throw new EvaluationException(opCode, valA.GetType(), valB.GetType());
             }
@@ -225,6 +230,8 @@ namespace CompDevLib.Interpreter
                     return AppendEvaluationResult(valA / valB);
                 case EOpCode.Mod:
                     return AppendEvaluationResult(valA % valB);
+                case EOpCode.Pow:
+                    return AppendEvaluationResult(MathF.Pow(valA, valB));
                 default:
                     throw new EvaluationException(opCode, valA.GetType(), valB.GetType());
             }

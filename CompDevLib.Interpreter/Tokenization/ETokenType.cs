@@ -28,6 +28,7 @@ namespace CompDevLib.Interpreter.Tokenization
         MULT,
         DIV,
         MOD,
+        POW,
 
         #endregion
 
@@ -52,6 +53,7 @@ namespace CompDevLib.Interpreter.Tokenization
         TYPE_MEMBER,
         PTR_MEMBER,
         COMMA,
+        COLON,
         OPEN_PR,
         CLOSE_PR,
     }

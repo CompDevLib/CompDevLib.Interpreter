@@ -38,12 +38,20 @@ public class TestInterpreter
             else
                 return context.Environment.AppendEvaluationResult(param0 * param1);
         });
-        var retA = interpreter.Execute(testContext, "TestFunc 12, 12.0, true, \"This is a string.\"");
-        Console.WriteLine($"TestFuncWithRet 12, 12.0, true == {retA.ValueType}");
-        var retB = interpreter.Execute<float>(testContext, "TestFuncWithRet 12, 12.0, true");
-        Console.WriteLine($"TestFuncWithRet 12, 12.0, true == {retB}");
-        var retC = interpreter.Execute<float>(testContext, "TestFuncWithRet 12, 12.0, false");
-        Console.WriteLine($"TestFuncWithRet 12, 12.0, false == {retC}");
-        //var retC = interpreter.Execute<int>(testContext, "TestFuncWithRet 12, 12, false");
+        var expressionA = "TestFunc: 12, 12.0, true, \"This is a string.\"";
+        var retA = interpreter.Execute(testContext, expressionA);
+        Console.WriteLine($"{expressionA} == {retA.ValueType}\n");
+
+        var expressionB = "TestFuncWithRet: 12, 12.0, true";
+        var retB = interpreter.Execute<float>(testContext, expressionB);
+        Console.WriteLine($"{expressionB} == {retB}\n");
+
+        var expressionC = "TestFuncWithRet: (2 + 1) * 2 ^ 2, 12.0, false";
+        var retC = interpreter.Execute<float>(testContext, expressionC);
+        Console.WriteLine($"{expressionC} == {retC}\n");
+        
+        var expressionD = "TestFuncWithRet: (2 * 3 + 3) * 2 / 3 + (1 + 2) * 2, 2 ^ 3 + 4.0, false";
+        var retD = interpreter.Execute<float>(testContext, expressionD);
+        Console.WriteLine($"{expressionD} == {retD}\n");
     }
 }

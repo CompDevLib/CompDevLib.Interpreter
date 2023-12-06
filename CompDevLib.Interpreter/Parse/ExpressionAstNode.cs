@@ -7,8 +7,10 @@ namespace CompDevLib.Interpreter.Parse
         public EOpCode OpCode;
         public ASTNode[] Operands;
 
-        public ExpressionAstNode(Token token, ASTNode[] operands)
+        public ExpressionAstNode(EOpCode opCode, ASTNode[] operands)
         {
+            OpCode = opCode;
+            Operands = operands;
         }
 
         public override ValueInfo Evaluate(CompEnvironment context)

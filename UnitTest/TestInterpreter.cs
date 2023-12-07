@@ -24,6 +24,22 @@ public class TestInterpreter
         var expressionB = "((1 + 2 + 3 + 2 ^ 2) / 2) ^ 2 ^ 2 % 100";
         int resultB = interpreter.EvaluateExpression<int>(context, expressionB);
         Assert.That(resultB == 25);
+
+        var expressionC = $"{expressionA} + 5 == {expressionB}";
+        bool resultC = interpreter.EvaluateExpression<bool>(context, expressionC);
+        Assert.That(resultC);
+    }
+
+    [Test]
+    public void TestPredefinedFunctions()
+    {
+        var interpreter = new CompInterpreter<BasicContext>();
+        var context = new BasicContext();
+        for (int i = 0; i < 10000; i++)
+        {
+            interpreter.Execute(context, "Print: 12+7^2+4");
+            interpreter.Execute(context, "Print: \"This is a string\"");
+        }
     }
     
     [Test]
@@ -53,25 +69,32 @@ public class TestInterpreter
                 ? ctx.Environment.PushEvaluationResult(param0 + param1)
                 : ctx.Environment.PushEvaluationResult(param0 * param1);
         });
-        var expressionA = "TestFunc: 12, 12.0, true, \"This is a string.\"";
-        var retA = interpreter.Execute(context, expressionA);
-        Console.WriteLine($"{expressionA} == {retA.ValueType}\n");
+        var instructionA = "TestFunc: 12, 12.0, true, \"This is a string.\"";
+        var retA = interpreter.Execute(context, instructionA);
+        Console.WriteLine($"{instructionA} == {retA.ValueType}\n");
         Assert.That(retA.ValueType == EValueType.Void);
 
-        var expressionB = "TestFuncWithRet: 12, 12.0, true";
-        var retB = interpreter.Execute<float>(context, expressionB);
-        Console.WriteLine($"{expressionB} == {retB}\n");
+        var instructionB = "TestFuncWithRet: 12, 12.0, true";
+        var retB = interpreter.Execute<float>(context, instructionB);
+        Console.WriteLine($"{instructionB} == {retB}\n");
         Assert.That((int)retB == 24);
 
-        var expressionC = "TestFuncWithRet: (2 + 1) * 2 ^ 2, 12.0, false";
-        var retC = interpreter.Execute<float>(context, expressionC);
-        Console.WriteLine($"{expressionC} == {retC}\n");
+        var instructionC = "TestFuncWithRet: (2 + 1) * 2 ^ 2, 12.0, false";
+        var retC = interpreter.Execute<float>(context, instructionC);
+        Console.WriteLine($"{instructionC} == {retC}\n");
         Assert.That((int)retC == 144);
         
-        var expressionD = "TestFuncWithRet: (2 * 3 + 3) * 2 / 3 + (1 + 2) * 2, 2 ^ 3 + 4.0, false";
-        var retD = interpreter.Execute<float>(context, expressionD);
-        Console.WriteLine($"{expressionD} == {retD}\n");
+        var instructionD = "TestFuncWithRet: (2 * 3 + 3) * 2 / 3 + (1 + 2) * 2, 2 ^ 3 + 4.0, false";
+        var retD = interpreter.Execute<float>(context, instructionD);
+        Console.WriteLine($"{instructionD} == {retD}\n");
         Assert.That((int)retD == 144);
+        
+        var instruction = interpreter.BuildInstruction(instructionD); // build instruction to an object.
+        instruction.Optimize(context); // optimize the instruction by computing expressions that will result in constant values first
+
+        // you can build the instruction and store it somewhere first, and execute when needed, which is a lot faster.
+        instruction.Execute(context);
+
     }
 
     [Test]

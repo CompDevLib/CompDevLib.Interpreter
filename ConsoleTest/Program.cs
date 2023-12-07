@@ -38,7 +38,7 @@ void TestInstruction2()
     interpreter.AddFunctionDefinition("TestFunc2", TestFunc2);
 
     var stopwatch = Stopwatch.StartNew();
-    const int executionCount = 1000000;
+    const int executionCount = 100000;
     
     for (int i = 0; i < executionCount; i++)
     {

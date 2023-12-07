@@ -68,6 +68,12 @@ namespace CompDevLib.Interpreter
             _operatorTokenStack = new Stack<Token>();
             _nodeStack = new Stack<ASTNode>();
             _result = new List<ASTNode>();
+            InitializePredefinedFunctions();
+        }
+
+        private void InitializePredefinedFunctions()
+        {
+            AddFunctionDefinition(nameof(PredefinedFunctions.Print), PredefinedFunctions.Print);
         }
         
         #region FunctionDefinition
@@ -332,5 +338,15 @@ namespace CompDevLib.Interpreter
             return new ExpressionAstNode(operatorInfo.OpCode, operands);
         }
         #endregion
+
+        private static class PredefinedFunctions
+        {
+            public static ValueInfo Print(TContext context, ASTNode[] parameters)
+            {
+                var param0Str = parameters[0].GetAnyValue(context.Environment);
+                System.Console.WriteLine(param0Str);
+                return ValueInfo.Void;
+            }
+        }
     }
 }

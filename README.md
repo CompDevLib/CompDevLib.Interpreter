@@ -2,6 +2,9 @@
 
 A simple interpreter that can evaluate expressions and execute custom instructions.
 
+This interpreter is intended for embedding in other application's sub-systems like commandline tools, game console, visual scripting, etc. 
+It is not a 
+
 ### Evaluate Expression
 
 ```csharp

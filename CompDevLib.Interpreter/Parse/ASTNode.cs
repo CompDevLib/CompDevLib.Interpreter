@@ -7,6 +7,16 @@ namespace CompDevLib.Interpreter.Parse
     {
         public abstract ValueInfo Evaluate(CompEnvironment context);
 
+        public virtual bool IsConstValue()
+        {
+            return false;
+        }
+
+        public virtual ASTNode Optimize(CompEnvironment context)
+        {
+            return this;
+        }
+
         public object GetAnyValue(CompEnvironment context)
         {
             var valueInfo = Evaluate(context);

@@ -35,6 +35,16 @@ namespace CompDevLib.Interpreter.Parse
         {
             Value = value;
         }
+
+        public override ASTNode Optimize(CompEnvironment context)
+        {
+            return this;
+        }
+
+        public override bool IsConstValue()
+        {
+            return true;
+        }
     }
     
     public class IntValueAstNode : ValueAstNode<int>

@@ -32,5 +32,31 @@ namespace CompDevLib.Interpreter.Parse
                     throw new EvaluationException(OpCode, Operands.Length);
             }
         }
+
+        public override ASTNode Optimize(CompEnvironment context)
+        {
+            bool isConstValue = true;
+            for (int i = 0; i < Operands.Length; i++)
+            {
+                var optimizedNode = Operands[i].Optimize(context);
+                if (!optimizedNode.IsConstValue())
+                    isConstValue = false;
+                Operands[i] = optimizedNode;
+            }
+
+            if (!isConstValue) return this;
+            
+            var result = Evaluate(context);
+            var evaluationStack = context.EvaluationStack;
+            return result.ValueType switch
+            {
+                EValueType.Int => new IntValueAstNode(evaluationStack.PopUnmanaged<int>()),
+                EValueType.Float => new FloatValueAstNode(evaluationStack.PopUnmanaged<float>()),
+                EValueType.Bool => new BoolValueAstNode(evaluationStack.PopUnmanaged<bool>()),
+                EValueType.Str => new StringValueAstNode(evaluationStack.PopObject<string>()),
+                EValueType.Obj => new ObjectValueAstNode(evaluationStack.PopObject<object>()),
+                _ => this
+            };
+        }
     }
 }

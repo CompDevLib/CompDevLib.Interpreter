@@ -42,14 +42,14 @@ void TestInstruction2()
     
     for (int i = 0; i < executionCount; i++)
     {
-        var retA = interpreter.Execute<float>(context, "TestFunc1: 12, 12.0, false");
+        var retA = interpreter.Execute<float>(context, "TestFunc1: (2 * 3 + 3) * 2 / 3 + (1 + 2) * 2, 2 ^ 3 + 4.0, false");
     }
     Console.WriteLine($"Standard function call time: {stopwatch.ElapsedMilliseconds}\n");
 
     stopwatch.Restart();
     for (int i = 0; i < executionCount; i++)
     {
-        var retB = interpreter.Execute<float>(context, "TestFunc2: 12, 12.0, false");
+        var retB = interpreter.Execute<float>(context, "TestFunc2: (2 * 3 + 3) * 2 / 3 + (1 + 2) * 2, 2 ^ 3 + 4.0, false");
     }
     stopwatch.Stop();
     Console.WriteLine($"Converted function call time: {stopwatch.ElapsedMilliseconds}");

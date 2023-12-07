@@ -107,6 +107,14 @@ namespace CompDevLib.Interpreter
             return GetResult<T>(evaluationStack, retValInfo, instructionStr);
         }
 
+        public T Execute<T>(TContext context, string instructionStr, CompInstruction<TContext> instruction)
+        {
+            var evaluationStack = context.Environment.EvaluationStack;
+            var retValInfo = instruction.Execute(context);
+            
+            return GetResult<T>(evaluationStack, retValInfo, instructionStr);
+        }
+
         public T EvaluateExpression<T>(TContext context, string expressionStr)
         {
             _lexer.Process(expressionStr);

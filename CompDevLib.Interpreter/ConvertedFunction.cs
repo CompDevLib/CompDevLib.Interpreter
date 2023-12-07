@@ -20,9 +20,11 @@ namespace CompDevLib.Interpreter
 
         public ValueInfo Invoke(TContext context, ASTNode[] parameters)
         {
-            // prepare parameters
             for (int i = 0; i < parameters.Length; i++)
                 _paramObjects[i] = parameters[i].GetAnyValue(context.Environment);
+
+            // TODO: Type conversion here is pretty slow and unnecessary for most cases, so it is not supported for now.
+            //Convert.ChangeType(parameters[i].GetAnyValue(context.Environment), parameterInfos[i].ParameterType);
             
             // execution
             var result = Function.Method.Invoke(null, _paramObjects);

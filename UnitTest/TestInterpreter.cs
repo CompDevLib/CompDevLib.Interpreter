@@ -107,7 +107,7 @@ public class TestInterpreter
         interpreter.AddFunctionDefinition("TestFunc2", TestFunc2);
 
         var stopwatch = Stopwatch.StartNew();
-        const int executionCount = 10000000;
+        const int executionCount = 1000000;
         for (int i = 0; i < executionCount; i++)
         {
             var retA = interpreter.Execute<float>(context, "TestFunc1: 12, 12.0, false");
@@ -123,5 +123,50 @@ public class TestInterpreter
         }
         stopwatch.Stop();
         Console.WriteLine($"Converted function call time: {stopwatch.ElapsedMilliseconds}");
+    }
+
+    [Test]
+    public void TestOptimization()
+    {
+        static float TestFunc(int param0, float param1, bool param2)
+        {
+            return param2
+                ? param0 + param1
+                : param0 * param1;
+        }
+        var interpreter = new CompInterpreter<BasicContext>();
+        var context = new BasicContext();
+        const string instructionStr = "TestFunc: (2 * 3 + 3) * 2 / 3 + (1 + 2) * 2, 2 ^ 3 + 4.0, false";
+
+        interpreter.AddFunctionDefinition("TestFunc", TestFunc);
+        var instruction = interpreter.BuildInstruction(instructionStr);
+        
+        var stopwatch = Stopwatch.StartNew();
+        const int executionCount = 1000000;
+        for (int i = 0; i < executionCount; i++)
+        {
+            var retA = interpreter.Execute<float>(context, instructionStr);
+            Assert.That((int) retA == 144);
+        }
+        Console.WriteLine($"Execute instruction string directly time cost: {stopwatch.ElapsedMilliseconds}\n");
+
+        stopwatch.Restart();
+        for (int i = 0; i < executionCount; i++)
+        {
+            var retB = interpreter.Execute<float>(context, instructionStr, instruction);
+            Assert.That((int) retB == 144);
+        }
+        stopwatch.Stop();
+        Console.WriteLine($"Execute pre-built instruction time cost: {stopwatch.ElapsedMilliseconds}\n");
+        
+        stopwatch.Restart();
+        instruction.Optimize(context);
+        for (int i = 0; i < executionCount; i++)
+        {
+            var retB = interpreter.Execute<float>(context, instructionStr, instruction);
+            Assert.That((int) retB == 144);
+        }
+        stopwatch.Stop();
+        Console.WriteLine($"Execute pre-built and optimized instruction time cost: {stopwatch.ElapsedMilliseconds}\n");
     }
 }

@@ -3,7 +3,7 @@ using CompDevLib.Interpreter.Tokenization;
 
 namespace CompDevLib.Interpreter
 {
-    public class CompInstruction<TContext> where TContext : ICompInterpreterContext
+    public class CompInstruction<TContext> where TContext : ICompInterpreterContext<TContext>
     {
         private readonly IFunction<TContext> _function;
         private readonly ASTNode[] _parameters;
@@ -16,6 +16,7 @@ namespace CompDevLib.Interpreter
 
         public ValueInfo Execute(TContext context)
         {
+            context.OnExecuteInstruction(this);
             return _function.Invoke(context, _parameters);
         }
 

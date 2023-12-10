@@ -31,14 +31,14 @@ void TestInstruction2()
             : param0 * param1;
     }
         
-    var interpreter = new CompInterpreter<BasicContext>();
+    var interpreter = new CompInterpreter<BasicContext>(false);
     var context = new BasicContext();
 
     interpreter.AddFunctionDefinition("TestFunc1", TestFunc1);
     interpreter.AddFunctionDefinition("TestFunc2", TestFunc2);
 
     var stopwatch = Stopwatch.StartNew();
-    const int executionCount = 100000;
+    const int executionCount = 1000000;
     
     for (int i = 0; i < executionCount; i++)
     {

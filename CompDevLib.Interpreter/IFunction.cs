@@ -2,7 +2,7 @@
 
 namespace CompDevLib.Interpreter
 {
-    public interface IFunction<in TContext> where TContext : ICompInterpreterContext
+    public interface IFunction<in TContext> where TContext : ICompInterpreterContext<TContext>
     {
         public ValueInfo Invoke(TContext context, ASTNode[] parameters);
     }

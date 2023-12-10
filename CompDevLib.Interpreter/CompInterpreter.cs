@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using CompDevLib.Interpreter.Tokenization;
 using CompDevLib.Interpreter.Parse;
 using CompDevLib.Pool;
 
 namespace CompDevLib.Interpreter
 {
-    public class CompInterpreter<TContext> where TContext : ICompInterpreterContext
+    public class CompInterpreter<TContext> where TContext : ICompInterpreterContext<TContext>
     {
         public readonly Dictionary<string, IFunction<TContext>> DefinedFunctions;
 
@@ -60,14 +61,16 @@ namespace CompDevLib.Interpreter
         private readonly Stack<Token> _operatorTokenStack;
         private readonly Stack<ASTNode> _nodeStack;
         private readonly List<ASTNode> _result;
+        public bool OptimizeInstructionOnBuild;
 
-        public CompInterpreter()
+        public CompInterpreter(bool optimizeInstructionOnBuild = true)
         {
             DefinedFunctions = new Dictionary<string, IFunction<TContext>>();
             _lexer = new Lexer();
             _operatorTokenStack = new Stack<Token>();
             _nodeStack = new Stack<ASTNode>();
             _result = new List<ASTNode>();
+            OptimizeInstructionOnBuild = optimizeInstructionOnBuild;
             InitializePredefinedFunctions();
         }
 
@@ -81,6 +84,12 @@ namespace CompDevLib.Interpreter
         public void AddFunctionDefinition(string funcIdentifier, Delegate func)
         {
             var convertedFunction = new ConvertedFunction<TContext>(func);
+            DefinedFunctions.Add(funcIdentifier, convertedFunction);
+        }
+
+        public void AddFunctionDefinition(string funcIdentifier, MethodInfo methodInfo)
+        {
+            var convertedFunction = new ConvertedFunction<TContext>(methodInfo);
             DefinedFunctions.Add(funcIdentifier, convertedFunction);
         }
         
@@ -100,14 +109,14 @@ namespace CompDevLib.Interpreter
         #region Execution
         public ValueInfo Execute(TContext context, string instructionStr)
         {
-            var instruction = BuildInstruction(instructionStr);
+            var instruction = BuildInstruction(context, instructionStr);
             return instruction.Execute(context);
         }
 
         public T Execute<T>(TContext context, string instructionStr)
         {
             var evaluationStack = context.Environment.EvaluationStack;
-            var instruction = BuildInstruction(instructionStr);
+            var instruction = BuildInstruction(context, instructionStr);
             var retValInfo = instruction.Execute(context);
             
             return GetResult<T>(evaluationStack, retValInfo, instructionStr);
@@ -179,7 +188,7 @@ namespace CompDevLib.Interpreter
         #endregion
         
         #region Parsing
-        public CompInstruction<TContext> BuildInstruction(string instructionStr)
+        public CompInstruction<TContext> BuildInstruction(TContext context, string instructionStr)
         {
             _lexer.Process(instructionStr);
             var tokens = _lexer.GetTokens();
@@ -199,10 +208,12 @@ namespace CompDevLib.Interpreter
             
             var parameters = ParseParameters(tokens, 2);
             
-            return new CompInstruction<TContext>(func, parameters);
+            var instruction = new CompInstruction<TContext>(func, parameters);
+            if(OptimizeInstructionOnBuild) instruction.Optimize(context);
+            return instruction;
         }
         
-        public CompInstruction<TContext> BuildInstruction(string funcIdentifier, string paramStr)
+        public CompInstruction<TContext> BuildInstruction(TContext context, string funcIdentifier, string paramStr)
         {
             if (!DefinedFunctions.TryGetValue(funcIdentifier, out var func))
                 throw new ArgumentException($"Undefined function {funcIdentifier}.");
@@ -210,7 +221,10 @@ namespace CompDevLib.Interpreter
             _lexer.Process(paramStr);
             var tokens = _lexer.GetTokens();
             var parameters = ParseParameters(tokens, 0);
-            return new CompInstruction<TContext>(func, parameters);
+            
+            var instruction = new CompInstruction<TContext>(func, parameters);
+            if(OptimizeInstructionOnBuild) instruction.Optimize(context);
+            return instruction;
         }
 
         /// <summary>

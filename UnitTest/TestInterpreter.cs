@@ -14,7 +14,7 @@ public class TestInterpreter
     [Test]
     public void TestExpression()
     {
-        var interpreter = new CompInterpreter<BasicContext>();
+        var interpreter = new CompInterpreter<BasicContext>(false);
         var context = new BasicContext();
         
         var expressionA = "(1 + 2 + 3 + 2 ^ 2) / 2 * 2 ^ 2 % 100";
@@ -45,7 +45,7 @@ public class TestInterpreter
     [Test]
     public void TestInstruction()
     {
-        var interpreter = new CompInterpreter<BasicContext>();
+        var interpreter = new CompInterpreter<BasicContext>(false);
         var context = new BasicContext();
         interpreter.AddFunctionDefinition("TestFunc", (ctx, parameters) =>
         {
@@ -89,7 +89,7 @@ public class TestInterpreter
         Console.WriteLine($"{instructionD} == {retD}\n");
         Assert.That((int)retD == 144);
         
-        var instruction = interpreter.BuildInstruction(instructionD); // build instruction to an object.
+        var instruction = interpreter.BuildInstruction(context, instructionD); // build instruction to an object.
         instruction.Optimize(context); // optimize the instruction by computing expressions that will result in constant values first
 
         // you can build the instruction and store it somewhere first, and execute when needed, which is a lot faster.
@@ -122,12 +122,20 @@ public class TestInterpreter
                 ? param0 + param1
                 : param0 * param1;
         }
+
+        static float TestFunc3(BasicContext context, int param0, float param1, bool param2)
+        {
+            return param2
+                ? param0 + param1
+                : param0 * param1;
+        }
         
-        var interpreter = new CompInterpreter<BasicContext>();
+        var interpreter = new CompInterpreter<BasicContext>(false);
         var context = new BasicContext();
 
         interpreter.AddFunctionDefinition("TestFunc1", TestFunc1);
         interpreter.AddFunctionDefinition("TestFunc2", TestFunc2);
+        interpreter.AddFunctionDefinition("TestFunc3", TestFunc3);
 
         var stopwatch = Stopwatch.StartNew();
         const int executionCount = 1000000;
@@ -146,6 +154,15 @@ public class TestInterpreter
         }
         stopwatch.Stop();
         Console.WriteLine($"Converted function call time: {stopwatch.ElapsedMilliseconds}");
+        
+        stopwatch.Restart();
+        for (int i = 0; i < executionCount; i++)
+        {
+            var retB = interpreter.Execute<float>(context, "TestFunc3: 12, 12.0, false");
+            Assert.That((int) retB == 144);
+        }
+        stopwatch.Stop();
+        Console.WriteLine($"Converted function with context call time: {stopwatch.ElapsedMilliseconds}");
     }
 
     [Test]
@@ -162,7 +179,7 @@ public class TestInterpreter
         const string instructionStr = "TestFunc: (2 * 3 + 3) * 2 / 3 + (1 + 2) * 2, 2 ^ 3 + 4.0, false";
 
         interpreter.AddFunctionDefinition("TestFunc", TestFunc);
-        var instruction = interpreter.BuildInstruction(instructionStr);
+        var instruction = interpreter.BuildInstruction(context, instructionStr);
         
         var stopwatch = Stopwatch.StartNew();
         const int executionCount = 1000000;

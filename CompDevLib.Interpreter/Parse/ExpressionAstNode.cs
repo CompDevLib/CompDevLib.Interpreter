@@ -21,6 +21,8 @@ namespace CompDevLib.Interpreter.Parse
                     return context.Evaluate(OpCode, Operands[0]);
                 case 2:
                     return context.Evaluate(OpCode, Operands[0], Operands[1]);
+                case 3:
+                    return context.Evaluate(OpCode, Operands[0], Operands[1], Operands[2]);
                 default:
                     throw new EvaluationException(OpCode, Operands.Length);
             }

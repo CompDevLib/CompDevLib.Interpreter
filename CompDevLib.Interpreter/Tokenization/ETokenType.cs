@@ -39,7 +39,7 @@ namespace CompDevLib.Interpreter.Tokenization
 
         #endregion
 
-        #region
+        #region Value
 
         INT,
         BOOL,
@@ -52,6 +52,7 @@ namespace CompDevLib.Interpreter.Tokenization
         ASSIGN,
         TYPE_MEMBER,
         PTR_MEMBER,
+        QUESTION_MARK,
         COMMA,
         COLON,
         OPEN_PR,

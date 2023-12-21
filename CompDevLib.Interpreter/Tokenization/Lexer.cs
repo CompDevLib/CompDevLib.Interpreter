@@ -133,6 +133,9 @@ namespace CompDevLib.Interpreter.Tokenization
 				case ':':
 					_tokens.Add(new Token { TokenType = ETokenType.COLON });
 					return 1;
+				case '?':
+					_tokens.Add(new Token {TokenType = ETokenType.QUESTION_MARK});
+					return 1;
 				case '(':
 					_tokens.Add(new Token { TokenType = ETokenType.OPEN_PR });
 					return 1;

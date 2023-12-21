@@ -62,6 +62,7 @@ namespace CompDevLib.Interpreter
         private readonly Stack<ASTNode> _nodeStack;
         private readonly List<ASTNode> _result;
         public bool OptimizeInstructionOnBuild;
+        public TContext DefaultContext;
 
         public CompInterpreter(bool optimizeInstructionOnBuild = true)
         {
@@ -71,6 +72,18 @@ namespace CompDevLib.Interpreter
             _nodeStack = new Stack<ASTNode>();
             _result = new List<ASTNode>();
             OptimizeInstructionOnBuild = optimizeInstructionOnBuild;
+            InitializePredefinedFunctions();
+        }
+        
+        public CompInterpreter(TContext defaultContext, bool optimizeInstructionOnBuild = true)
+        {
+            DefinedFunctions = new Dictionary<string, IFunction<TContext>>();
+            _lexer = new Lexer();
+            _operatorTokenStack = new Stack<Token>();
+            _nodeStack = new Stack<ASTNode>();
+            _result = new List<ASTNode>();
+            OptimizeInstructionOnBuild = optimizeInstructionOnBuild;
+            DefaultContext = defaultContext;
             InitializePredefinedFunctions();
         }
 
@@ -107,6 +120,12 @@ namespace CompDevLib.Interpreter
         #endregion
 
         #region Execution
+
+        public ValueInfo Execute(string instructionStr) => Execute(DefaultContext, instructionStr);
+        public T Execute<T>(string instructionStr) => Execute<T>(DefaultContext, instructionStr);
+        public T Execute<T>(CompInstruction<TContext> instruction) => Execute<T>(DefaultContext, instruction);
+        public T EvaluateExpression<T>(string expressionStr) => EvaluateExpression<T>(DefaultContext, expressionStr);
+        
         public ValueInfo Execute(TContext context, string instructionStr)
         {
             var instruction = BuildInstruction(context, instructionStr);
@@ -192,7 +211,7 @@ namespace CompDevLib.Interpreter
         {
             _lexer.Process(instructionStr);
             var tokens = _lexer.GetTokens();
-            if (tokens.Count == 0 || tokens.Count == 2)
+            if (tokens.Count == 0)
                 throw new ArgumentException($"Unable to parse \"{instructionStr}\" to an instruction.");
 
             var funcIdentifierToken = tokens[0];
@@ -202,11 +221,8 @@ namespace CompDevLib.Interpreter
             
             if(!DefinedFunctions.TryGetValue(funcIdentifierToken.Value, out var func))
                 throw new ArgumentException($"Undefined function {funcIdentifierToken.Value}.");
-
-            if (tokens.Count > 2 && tokens[1].TokenType != ETokenType.COLON)
-                throw new ArgumentException($"Colon is expected between function identifier and parameters for instruction \"{instructionStr}\".");
             
-            var parameters = ParseParameters(tokens, 2);
+            var parameters = ParseParameters(tokens, 1);
             
             var instruction = new CompInstruction<TContext>(instructionStr, func, parameters);
             if(OptimizeInstructionOnBuild) instruction.Optimize(context);

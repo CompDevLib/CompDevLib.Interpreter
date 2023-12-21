@@ -130,6 +130,17 @@ namespace CompDevLib.Interpreter
             throw new EvaluationException(opCode, operandA, operandB);
         }
 
+        public ValueInfo Evaluate(EOpCode opCode, ASTNode operandA, ASTNode operandB, ASTNode operandC)
+        {
+            if (opCode != EOpCode.Ternary) throw new EvaluationException(opCode, 3);
+            
+            var valueInfoA = operandA.Evaluate(this);
+            if (valueInfoA.ValueType != EValueType.Bool) throw new EvaluationException(opCode, 3);
+
+            var condition = EvaluationStack.PopUnmanaged<bool>();
+            return condition ? operandB.Evaluate(this) : operandC.Evaluate(this);
+        }
+
         private ValueInfo Evaluate(EOpCode opCode, int valA, int valB)
         {
             switch (opCode)

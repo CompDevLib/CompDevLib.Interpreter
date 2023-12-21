@@ -7,9 +7,11 @@ namespace CompDevLib.Interpreter
     {
         private readonly IFunction<TContext> _function;
         private readonly ASTNode[] _parameters;
+        public readonly string InstructionStr;
 
-        public CompInstruction(IFunction<TContext> func, ASTNode[] parameters)
+        public CompInstruction(string instructionStr, IFunction<TContext> func, ASTNode[] parameters)
         {
+            InstructionStr = instructionStr;
             _function = func;
             _parameters = parameters;
         }
@@ -25,6 +27,11 @@ namespace CompDevLib.Interpreter
             if(_parameters == null) return;
             for (int i = 0; i < _parameters.Length; i++)
                 _parameters[i] = _parameters[i].Optimize(context.Environment);
+        }
+
+        public override string ToString()
+        {
+            return InstructionStr;
         }
     }
 }

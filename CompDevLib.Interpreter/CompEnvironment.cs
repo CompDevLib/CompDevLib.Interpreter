@@ -7,15 +7,19 @@ namespace CompDevLib.Interpreter
     public class CompEnvironment
     {
         public readonly FixedDataBuffer EvaluationStack;
+        public readonly ValueSelector ValueSelector;
+        private object _currentOwner;
 
-        public CompEnvironment()
+        public CompEnvironment(ValueSelector valueSelector = null)
         {
+            ValueSelector = valueSelector;
             EvaluationStack = new FixedDataBuffer();
         }
 
         #region Evaluate Operation
-        public ValueInfo Evaluate(EOpCode opCode, ValueInfo valueInfo)
+        public ValueInfo Evaluate(EOpCode opCode, ASTNode operand)
         {
+            var valueInfo = operand.Evaluate(this);
             switch (valueInfo.ValueType)
             {
                 case EValueType.Int:
@@ -38,13 +42,15 @@ namespace CompDevLib.Interpreter
             }
         }
         
-        public ValueInfo Evaluate(EOpCode opCode, ValueInfo valueInfoA, ValueInfo valueInfoB)
+        public ValueInfo Evaluate(EOpCode opCode, ASTNode operandA, ASTNode operandB)
         {
+            var valueInfoA = operandA.Evaluate(this);
             switch (valueInfoA.ValueType)
             {
                 case EValueType.Int:
                 {
                     var valueA = EvaluationStack.PopUnmanaged<int>();
+                    var valueInfoB = operandB.Evaluate(this);
                     switch (valueInfoB.ValueType)
                     {
                         case EValueType.Int:
@@ -64,6 +70,7 @@ namespace CompDevLib.Interpreter
                 case EValueType.Float:
                 {
                     var valueA = EvaluationStack.PopUnmanaged<float>();
+                    var valueInfoB = operandB.Evaluate(this);
                     switch (valueInfoB.ValueType)
                     {
                         case EValueType.Int:
@@ -83,6 +90,7 @@ namespace CompDevLib.Interpreter
                 case EValueType.Bool:
                 {
                     var valueA = EvaluationStack.PopUnmanaged<bool>();
+                    var valueInfoB = operandB.Evaluate(this);
                     if (valueInfoB.ValueType == EValueType.Bool)
                     {
                         var valueB = EvaluationStack.PopUnmanaged<bool>();
@@ -93,6 +101,7 @@ namespace CompDevLib.Interpreter
                 case EValueType.Str:
                 {
                     var valueA = EvaluationStack.PopObject<string>();
+                    var valueInfoB = operandB.Evaluate(this);
                     if (valueInfoB.ValueType == EValueType.Str)
                     {
                         var valueB = EvaluationStack.PopObject<string>();
@@ -100,9 +109,25 @@ namespace CompDevLib.Interpreter
                     }
                     break;
                 }
+                case EValueType.Obj:
+                {
+                    var valueA = EvaluationStack.PopObject<object>();
+                    if (opCode == EOpCode.Member)
+                    {
+                        _currentOwner = valueA;
+                        if (operandB is VariableAstNode astNode)
+                        {
+                            var valueInfoB = astNode.Evaluate(this);
+                            _currentOwner = null;
+                            return valueInfoB;
+                        }
+                        // TODO: indexing
+                    }
+                    break;
+                }
             }
             
-            throw new EvaluationException(opCode, valueInfoA, valueInfoB);
+            throw new EvaluationException(opCode, operandA, operandB);
         }
 
         private ValueInfo Evaluate(EOpCode opCode, int valA, int valB)

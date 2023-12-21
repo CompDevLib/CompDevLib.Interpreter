@@ -122,12 +122,12 @@ namespace CompDevLib.Interpreter
             return GetResult<T>(evaluationStack, retValInfo, instructionStr);
         }
 
-        public T Execute<T>(TContext context, string instructionStr, CompInstruction<TContext> instruction)
+        public T Execute<T>(TContext context, CompInstruction<TContext> instruction)
         {
             var evaluationStack = context.Environment.EvaluationStack;
             var retValInfo = instruction.Execute(context);
             
-            return GetResult<T>(evaluationStack, retValInfo, instructionStr);
+            return GetResult<T>(evaluationStack, retValInfo, instruction.InstructionStr);
         }
 
         public T EvaluateExpression<T>(TContext context, string expressionStr)
@@ -208,7 +208,7 @@ namespace CompDevLib.Interpreter
             
             var parameters = ParseParameters(tokens, 2);
             
-            var instruction = new CompInstruction<TContext>(func, parameters);
+            var instruction = new CompInstruction<TContext>(instructionStr, func, parameters);
             if(OptimizeInstructionOnBuild) instruction.Optimize(context);
             return instruction;
         }
@@ -222,7 +222,7 @@ namespace CompDevLib.Interpreter
             var tokens = _lexer.GetTokens();
             var parameters = ParseParameters(tokens, 0);
             
-            var instruction = new CompInstruction<TContext>(func, parameters);
+            var instruction = new CompInstruction<TContext>($"{funcIdentifier}: {paramStr}", func, parameters);
             if(OptimizeInstructionOnBuild) instruction.Optimize(context);
             return instruction;
         }
@@ -236,7 +236,7 @@ namespace CompDevLib.Interpreter
         /// <exception cref="Exception"></exception>
         private ASTNode[] ParseParameters(IReadOnlyList<Token> tokens, int beginIndex)
         {
-            if (beginIndex >= tokens.Count) return null;
+            if (beginIndex >= tokens.Count) return Array.Empty<ASTNode>();
             
             _result.Clear();
             for (int i = beginIndex; i < tokens.Count; i++)

@@ -4,6 +4,14 @@ namespace CompDevLib.Interpreter.Parse
 {
     public class EvaluationException : Exception
     {
+        public EvaluationException(EOpCode opCode, ASTNode operandA, ASTNode operandB)
+        {
+        }
+
+        public EvaluationException(EOpCode opCode, ASTNode operand)
+        {
+        }
+        
         public EvaluationException(EOpCode opCode, ValueInfo valueInfoA, ValueInfo valueInfoB)
         {
         }

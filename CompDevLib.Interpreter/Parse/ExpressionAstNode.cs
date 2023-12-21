@@ -18,16 +18,9 @@ namespace CompDevLib.Interpreter.Parse
             switch (Operands.Length)
             {
                 case 1:
-                {
-                    var operand1Val = Operands[0].Evaluate(context);
-                    return context.Evaluate(OpCode, operand1Val);
-                }
+                    return context.Evaluate(OpCode, Operands[0]);
                 case 2:
-                {
-                    var operand2Val = Operands[1].Evaluate(context);
-                    var operand1Val = Operands[0].Evaluate(context);
-                    return context.Evaluate(OpCode, operand1Val, operand2Val);
-                }
+                    return context.Evaluate(OpCode, Operands[0], Operands[1]);
                 default:
                     throw new EvaluationException(OpCode, Operands.Length);
             }

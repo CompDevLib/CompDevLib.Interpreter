@@ -34,14 +34,19 @@ namespace CompDevLib.Interpreter
         {
             if (NeedContext)
             {
+                if (_paramObjects.Length != parameters.Length + 1)
+                    throw new ArgumentException($"Insufficient argument count: {_paramObjects.Length - 1} needed, {parameters.Length} given.");
                 _paramObjects[0] = context;
-                for (int i = 1; i < parameters.Length; i++)
+                for (int i = 1; i < _paramObjects.Length; i++)
                     _paramObjects[i] = parameters[i - 1].GetAnyValue(context.Environment);
             }
             else
+            {
+                if (_paramObjects.Length != parameters.Length)
+                    throw new ArgumentException($"Insufficient argument count: {_paramObjects.Length} needed, {parameters.Length} given.");
                 for (int i = 0; i < parameters.Length; i++)
                     _paramObjects[i] = parameters[i].GetAnyValue(context.Environment);
-
+            }
             // TODO: Type conversion here is pretty slow and unnecessary for most cases, so it is not supported for now.
             //Convert.ChangeType(parameters[i].GetAnyValue(context.Environment), parameterInfos[i].ParameterType);
             

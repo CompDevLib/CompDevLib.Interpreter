@@ -2,28 +2,20 @@ using System;
 
 namespace CompDevLib.Interpreter.Parse
 {
-    public delegate ValueInfo ValueSelector(CompEnvironment context);
+    public delegate ValueInfo ValueSelector(CompEnvironment context, string value);
 
     public class VariableAstNode : ASTNode
     {
         public readonly string Identifier;
-        protected readonly ValueSelector Delegate;
 
         public VariableAstNode(string identifier)
         {
             Identifier = identifier;
-            if (Delegate == null)
-                throw new ArgumentException($"Unrecognizable identifier {identifier}.");
-        }
-        
-        public VariableAstNode(ValueSelector selectValueDel)
-        {
-            Delegate = selectValueDel;
         }
 
         public override ValueInfo Evaluate(CompEnvironment context)
         {
-            return Delegate(context);
+            return context.ValueSelector(context, Identifier);
         }
     }
     

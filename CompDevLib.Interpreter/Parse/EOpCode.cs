@@ -6,7 +6,7 @@ namespace CompDevLib.Interpreter.Parse
         Add, Sub, Mult, Div, Mod, Pow,
         Neg, Inc, Dec, 
         And, Or, Not, 
-        // TODO: Add support for conditional operator
+        Ternary,
         Member,
     }
 }

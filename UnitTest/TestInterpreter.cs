@@ -37,8 +37,8 @@ public class TestInterpreter
         var context = new BasicContext();
         for (int i = 0; i < 10000; i++)
         {
-            interpreter.Execute(context, "Print: 12+7^2+4");
-            interpreter.Execute(context, "Print: \"This is a string\"");
+            interpreter.Execute(context, "Print 12+7^2+4");
+            interpreter.Execute(context, "Print \"This is a string\"");
         }
     }
     
@@ -69,22 +69,22 @@ public class TestInterpreter
                 ? ctx.Environment.PushEvaluationResult(param0 + param1)
                 : ctx.Environment.PushEvaluationResult(param0 * param1);
         });
-        var instructionA = "TestFunc: 12, 12.0, true, \"This is a string.\"";
+        var instructionA = "TestFunc 12, 12.0, true, \"This is a string.\"";
         var retA = interpreter.Execute(context, instructionA);
         Console.WriteLine($"{instructionA} == {retA.ValueType}\n");
         Assert.That(retA.ValueType == EValueType.Void);
 
-        var instructionB = "TestFuncWithRet: 12, 12.0, true";
+        var instructionB = "TestFuncWithRet 12, 12.0, true";
         var retB = interpreter.Execute<float>(context, instructionB);
         Console.WriteLine($"{instructionB} == {retB}\n");
         Assert.That((int)retB == 24);
 
-        var instructionC = "TestFuncWithRet: (2 + 1) * 2 ^ 2, 12.0, false";
+        var instructionC = "TestFuncWithRet (2 + 1) * 2 ^ 2, 12.0, false";
         var retC = interpreter.Execute<float>(context, instructionC);
         Console.WriteLine($"{instructionC} == {retC}\n");
         Assert.That((int)retC == 144);
         
-        var instructionD = "TestFuncWithRet: (2 * 3 + 3) * 2 / 3 + (1 + 2) * 2, 2 ^ 3 + 4.0, false";
+        var instructionD = "TestFuncWithRet (2 * 3 + 3) * 2 / 3 + (1 + 2) * 2, 2 ^ 3 + 4.0, false";
         var retD = interpreter.Execute<float>(context, instructionD);
         Console.WriteLine($"{instructionD} == {retD}\n");
         Assert.That((int)retD == 144);
@@ -130,8 +130,8 @@ public class TestInterpreter
                 : param0 * param1;
         }
         
-        var interpreter = new CompInterpreter<BasicContext>(false);
         var context = new BasicContext();
+        var interpreter = new CompInterpreter<BasicContext>(context, false);
 
         interpreter.AddFunctionDefinition("TestFunc1", TestFunc1);
         interpreter.AddFunctionDefinition("TestFunc2", TestFunc2);
@@ -141,7 +141,7 @@ public class TestInterpreter
         const int executionCount = 1000000;
         for (int i = 0; i < executionCount; i++)
         {
-            var retA = interpreter.Execute<float>(context, "TestFunc1: 12, 12.0, false");
+            var retA = interpreter.Execute<float>("TestFunc1 12, 12.0, false");
             Assert.That((int) retA == 144);
         }
         Console.WriteLine($"Standard function call time: {stopwatch.ElapsedMilliseconds}\n");
@@ -149,7 +149,7 @@ public class TestInterpreter
         stopwatch.Restart();
         for (int i = 0; i < executionCount; i++)
         {
-            var retB = interpreter.Execute<float>(context, "TestFunc2: 12, 12.0, false");
+            var retB = interpreter.Execute<float>("TestFunc2 12, 12.0, false");
             Assert.That((int) retB == 144);
         }
         stopwatch.Stop();
@@ -158,7 +158,7 @@ public class TestInterpreter
         stopwatch.Restart();
         for (int i = 0; i < executionCount; i++)
         {
-            var retB = interpreter.Execute<float>(context, "TestFunc3: 12, 12.0, false");
+            var retB = interpreter.Execute<float>("TestFunc3 12, 12.0, false");
             Assert.That((int) retB == 144);
         }
         stopwatch.Stop();
@@ -174,9 +174,9 @@ public class TestInterpreter
                 ? param0 + param1
                 : param0 * param1;
         }
-        var interpreter = new CompInterpreter<BasicContext>();
+        var interpreter = new CompInterpreter<BasicContext>(false);
         var context = new BasicContext();
-        const string instructionStr = "TestFunc: (2 * 3 + 3) * 2 / 3 + (1 + 2) * 2, 2 ^ 3 + 4.0, false";
+        const string instructionStr = "TestFunc (2 * 3 + 3) * 2 / 3 + (1 + 2) * 2, 2 ^ 3 + 4.0, false";
 
         interpreter.AddFunctionDefinition("TestFunc", TestFunc);
         var instruction = interpreter.BuildInstruction(context, instructionStr);
@@ -193,7 +193,7 @@ public class TestInterpreter
         stopwatch.Restart();
         for (int i = 0; i < executionCount; i++)
         {
-            var retB = interpreter.Execute<float>(context, instructionStr, instruction);
+            var retB = interpreter.Execute<float>(context, instruction);
             Assert.That((int) retB == 144);
         }
         stopwatch.Stop();
@@ -203,7 +203,7 @@ public class TestInterpreter
         instruction.Optimize(context);
         for (int i = 0; i < executionCount; i++)
         {
-            var retB = interpreter.Execute<float>(context, instructionStr, instruction);
+            var retB = interpreter.Execute<float>(context, instruction);
             Assert.That((int) retB == 144);
         }
         stopwatch.Stop();

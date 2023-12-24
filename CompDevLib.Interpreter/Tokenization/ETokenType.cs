@@ -56,5 +56,9 @@ namespace CompDevLib.Interpreter.Tokenization
         COLON,
         OPEN_PR,
         CLOSE_PR,
+        OPEN_BRACKET,
+        CLOSE_BRACKET,
+        OPEN_BRACE,
+        CLOSE_BRACE,
     }
 }

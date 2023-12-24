@@ -139,6 +139,18 @@ namespace CompDevLib.Interpreter.Tokenization
 				case ')':
 					_tokens.Add(new Token { TokenType = ETokenType.CLOSE_PR });
 					return 1;
+				case '[':
+					_tokens.Add(new Token{TokenType = ETokenType.OPEN_BRACKET});
+					return 1;
+				case ']':
+					_tokens.Add(new Token{TokenType = ETokenType.CLOSE_BRACKET});
+					return 1;
+				case '{':
+					_tokens.Add(new Token{TokenType = ETokenType.OPEN_BRACE});
+					return 1;
+				case '}':
+					_tokens.Add(new Token{TokenType = ETokenType.CLOSE_BRACE});
+					return 1;
 			}
 			if (chr == '\'' || chr == '"') return ReadString(pData, length);
 			return ReadWord(pData, length);

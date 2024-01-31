@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using CompDevLib.CustomDebug;
 using CompDevLib.Interpreter.Tokenization;
 using CompDevLib.Interpreter.Parse;
 using CompDevLib.Pool;
@@ -63,6 +64,7 @@ namespace CompDevLib.Interpreter
         private readonly List<ASTNode> _result;
         public bool OptimizeInstructionOnBuild;
         public TContext DefaultContext;
+        public ILogger OutputLogger;
 
         public CompInterpreter(bool optimizeInstructionOnBuild = true)
         {
@@ -374,7 +376,7 @@ namespace CompDevLib.Interpreter
             public static ValueInfo Print(TContext context, ASTNode[] parameters)
             {
                 var param0Str = parameters[0].GetAnyValue(context.Environment);
-                System.Console.WriteLine(param0Str);
+                context.Environment.Logger.Info(param0Str?.ToString() ?? "null");
                 return ValueInfo.Void;
             }
         }

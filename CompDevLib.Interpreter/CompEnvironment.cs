@@ -1,4 +1,5 @@
 using System;
+using CompDevLib.CustomDebug;
 using CompDevLib.Interpreter.Parse;
 using CompDevLib.Pool;
 
@@ -8,6 +9,7 @@ namespace CompDevLib.Interpreter
     {
         public readonly FixedDataBuffer EvaluationStack;
         public readonly ValueSelector ValueSelector;
+        public ILogger Logger;
         private object _currentOwner;
 
         public CompEnvironment(ValueSelector valueSelector = null)

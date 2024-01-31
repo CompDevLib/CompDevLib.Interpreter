@@ -15,9 +15,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Reference Include="CompDevLib">
-        <HintPath>..\External\CompDevLib.dll</HintPath>
-      </Reference>
+      <ProjectReference Include="..\..\CompDevLib\CompDevLib\CompDevLib.csproj" />
     </ItemGroup>
 
 </Project>

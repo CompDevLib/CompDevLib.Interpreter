@@ -6,6 +6,8 @@ namespace CompDevLib.Interpreter.Parse
     {
         public static EValueType ParseValueType(Type type)
         {
+            if (type == typeof(void))
+                return EValueType.Void;
             if (type == typeof(int))
                 return EValueType.Int;
             if (type == typeof(float))

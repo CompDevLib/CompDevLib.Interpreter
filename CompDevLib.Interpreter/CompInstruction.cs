@@ -22,6 +22,59 @@ namespace CompDevLib.Interpreter
             return _function.Invoke(context, _parameters);
         }
 
+        public T Execute<T>(TContext context)
+        {
+            var ret = Execute(context);
+            return GetResult<T>(context.Environment, ret);
+        }
+        
+        private T GetResult<T>(CompEnvironment environment, ValueInfo retValInfo)
+        {
+            var evaluationStack = environment.EvaluationStack;
+            var instructionStr = InstructionStr;
+            
+            var expectedRetType = typeof(T);
+            switch (retValInfo.ValueType)
+            {
+                case EValueType.Void:
+                    if (expectedRetType != typeof(void))
+                        throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(void));
+                    break;
+                case EValueType.Int:
+                {
+                    var retVal = evaluationStack.PopUnmanaged<int>();
+                    if (retVal is T parsedRetVal) return parsedRetVal;
+                    throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(int));
+                }
+                case EValueType.Float:
+                {
+                    var retVal = evaluationStack.PopUnmanaged<float>();
+                    if (retVal is T parsedRetVal) return parsedRetVal;
+                    throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(float));
+                }
+                case EValueType.Bool:
+                {
+                    var retVal = evaluationStack.PopUnmanaged<bool>();
+                    if (retVal is T parsedRetVal) return parsedRetVal;
+                    throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(bool));
+                }
+                case EValueType.Str:
+                {
+                    var retVal = evaluationStack.PopObject<string>();
+                    if (retVal is T parsedRetVal) return parsedRetVal;
+                    throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(string));
+                }
+                case EValueType.Obj:
+                {
+                    var retVal = evaluationStack.PopObject<object>();
+                    if (retVal is T parsedRetVal) return parsedRetVal;
+                    throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, retVal.GetType());
+                }
+            }
+
+            return default;
+        }
+        
         public void Optimize(TContext context)
         {
             if(_parameters == null) return;

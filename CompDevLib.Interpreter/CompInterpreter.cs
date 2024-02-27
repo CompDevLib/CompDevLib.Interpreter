@@ -92,6 +92,7 @@ namespace CompDevLib.Interpreter
         private void InitializePredefinedFunctions()
         {
             AddFunctionDefinition(nameof(PredefinedFunctions.Print), PredefinedFunctions.Print);
+            AddFunctionDefinition(nameof(PredefinedFunctions.Evaluate), PredefinedFunctions.Evaluate);
         }
         
         #region FunctionDefinition
@@ -165,7 +166,6 @@ namespace CompDevLib.Interpreter
         private T GetResult<T>(FixedDataBuffer evaluationStack, ValueInfo retValInfo, string instructionStr)
         {
             var expectedRetType = typeof(T);
-            // TODO: change getting value at offset to pop
             switch (retValInfo.ValueType)
             {
                 case EValueType.Void:
@@ -378,6 +378,11 @@ namespace CompDevLib.Interpreter
                 var param0Str = parameters[0].GetAnyValue(context.Environment);
                 context.Environment.Logger.Info(param0Str?.ToString() ?? "null");
                 return ValueInfo.Void;
+            }
+
+            public static ValueInfo Evaluate(TContext context, ASTNode[] parameters)
+            {
+                return parameters[0].Evaluate(context.Environment);
             }
         }
     }

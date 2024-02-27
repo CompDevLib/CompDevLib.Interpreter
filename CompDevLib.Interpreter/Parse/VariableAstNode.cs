@@ -15,7 +15,7 @@ namespace CompDevLib.Interpreter.Parse
 
         public override ValueInfo Evaluate(CompEnvironment context)
         {
-            return context.ValueSelector(context, Identifier);
+            return context.SelectValue(Identifier);
         }
     }
     

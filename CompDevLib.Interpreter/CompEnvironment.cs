@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CompDevLib.CustomDebug;
 using CompDevLib.Interpreter.Parse;
 using CompDevLib.Pool;
@@ -8,14 +9,41 @@ namespace CompDevLib.Interpreter
     public class CompEnvironment
     {
         public readonly FixedDataBuffer EvaluationStack;
-        public readonly ValueSelector ValueSelector;
         public ILogger Logger;
         private object _currentOwner;
+        private readonly List<ValueSelector> _valueSelectors;
 
-        public CompEnvironment(ValueSelector valueSelector = null)
+        public CompEnvironment()
         {
-            ValueSelector = valueSelector;
             EvaluationStack = new FixedDataBuffer();
+            _valueSelectors = new List<ValueSelector>();
+        }
+
+        public void RegisterValueSelector(ValueSelector valueSelector)
+        {
+            _valueSelectors.Add(valueSelector);
+        }
+
+        public void UnregisterValueSelector(ValueSelector valueSelector)
+        {
+            for (int i = _valueSelectors.Count - 1; i >= 0; i--)
+            {
+                if (!valueSelector.Equals(_valueSelectors[i])) continue;
+                _valueSelectors.RemoveAt(i);
+                return;
+            }
+        }
+
+        public ValueInfo SelectValue(string key)
+        {
+            for (int i = _valueSelectors.Count - 1; i >= 0; i--)
+            {
+                var result = _valueSelectors[i].Invoke(this, key);
+                if (result.Offset >= 0)
+                    return result;
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(key), $"Unable to select value with key: {key}");
         }
 
         #region Evaluate Operation

@@ -17,5 +17,10 @@ namespace CompDevLib.Interpreter
         {
             _currInstruction = instruction;
         }
+
+        public CompInstruction<BasicContext> GetExecutingInstruction()
+        {
+            return _currInstruction;
+        }
     }
 }

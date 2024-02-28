@@ -34,11 +34,13 @@ public class TestInterpreter
     public void TestPredefinedFunctions()
     {
         var interpreter = new CompInterpreter<BasicContext>();
-        var context = new BasicContext();
+        interpreter.DefaultContext = new BasicContext();
+        var result = interpreter.EvaluateExpression<int>("12 + 7 ^ 2 + 4");
+        Assert.That(result == 12 + 7 * 7 + 4);
         for (int i = 0; i < 10000; i++)
         {
-            interpreter.Execute(context, "Print 12+7^2+4");
-            interpreter.Execute(context, "Print \"This is a string\"");
+            interpreter.Execute("Print 12+7^2+4");
+            interpreter.Execute("Print \"This is a string\"");
         }
     }
     

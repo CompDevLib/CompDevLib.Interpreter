@@ -62,7 +62,7 @@ namespace CompDevLib.Interpreter
                 EValueType.Bool => context.Environment.PushEvaluationResult((bool) result),
                 EValueType.Str => context.Environment.PushEvaluationResult((string) result),
                 EValueType.Obj => context.Environment.PushEvaluationResult(result),
-                _ => throw new Exception()
+                _ => throw new Exception("Impossible branch."),
             };
         }
     }

@@ -1,21 +1,18 @@
 using System;
 using System.Collections.Generic;
-using CompDevLib.CustomDebug;
 using CompDevLib.Interpreter.Parse;
-using CompDevLib.Pool;
 
 namespace CompDevLib.Interpreter
 {
     public class CompEnvironment
     {
-        public readonly FixedDataBuffer EvaluationStack;
-        public ILogger Logger;
+        public readonly EvaluationStack EvaluationStack;
         private object _currentOwner;
         private readonly List<ValueSelector> _valueSelectors;
 
         public CompEnvironment()
         {
-            EvaluationStack = new FixedDataBuffer();
+            EvaluationStack = new EvaluationStack();
             _valueSelectors = new List<ValueSelector>();
         }
 

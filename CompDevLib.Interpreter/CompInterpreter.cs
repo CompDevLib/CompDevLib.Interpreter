@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using CompDevLib.CustomDebug;
 using CompDevLib.Interpreter.Tokenization;
 using CompDevLib.Interpreter.Parse;
-using CompDevLib.Pool;
 
 namespace CompDevLib.Interpreter
 {
@@ -64,7 +62,6 @@ namespace CompDevLib.Interpreter
         private readonly List<ASTNode> _result;
         public bool OptimizeInstructionOnBuild;
         public TContext DefaultContext;
-        public ILogger OutputLogger;
 
         public CompInterpreter(bool optimizeInstructionOnBuild = true)
         {
@@ -163,7 +160,7 @@ namespace CompDevLib.Interpreter
             return GetResult<T>(context.Environment.EvaluationStack, result, expressionStr);
         }
 
-        private T GetResult<T>(FixedDataBuffer evaluationStack, ValueInfo retValInfo, string instructionStr)
+        private T GetResult<T>(EvaluationStack evaluationStack, ValueInfo retValInfo, string instructionStr)
         {
             var expectedRetType = typeof(T);
             switch (retValInfo.ValueType)
@@ -245,6 +242,31 @@ namespace CompDevLib.Interpreter
             return instruction;
         }
 
+        public CompInstruction<TContext> BuildInstruction(TContext context, string funcIdentifier,
+            params string[] parameterStrings)
+        {
+            if (!DefinedFunctions.TryGetValue(funcIdentifier, out var func))
+                throw new ArgumentException($"Undefined function {funcIdentifier}.");
+
+            ASTNode[] parameters = null;
+            
+            if (parameterStrings != null && parameterStrings.Length > 0)
+            {
+                parameters = new ASTNode[parameterStrings.Length];
+                for (int i = 0; i < parameterStrings.Length; i++)
+                {
+                    _lexer.Process(parameterStrings[i]);
+                    var tokens = _lexer.GetTokens();
+                    int beginIndex = 0;
+                    parameters[i] = ParseExpression(tokens, ref beginIndex);
+                }
+            }
+            
+            var instruction = new CompInstruction<TContext>(funcIdentifier, func, parameters);
+            if(OptimizeInstructionOnBuild) instruction.Optimize(context);
+            return instruction;
+        }
+
         /// <summary>
         /// Parse tokens with expressions as parameters with shunting yard algorithm.
         /// </summary>
@@ -257,7 +279,24 @@ namespace CompDevLib.Interpreter
             if (beginIndex >= tokens.Count) return Array.Empty<ASTNode>();
             
             _result.Clear();
-            for (int i = beginIndex; i < tokens.Count; i++)
+            var index = beginIndex;
+            for (;;)
+            {
+                var node = ParseExpression(tokens, ref index);
+                if(node == null) break;
+                _result.Add(node);
+            }
+            return _result.ToArray();
+        }
+
+        private ASTNode ParseExpression(IReadOnlyList<Token> tokens, ref int index)
+        {
+            if (index >= tokens.Count) return null;
+            
+            _nodeStack.Clear();
+            _operatorTokenStack.Clear();
+            
+            for (int i = index; i < tokens.Count; i++)
             {
                 var token = tokens[i];
                 if (token.TokenType == ETokenType.OPEN_PR)
@@ -283,9 +322,10 @@ namespace CompDevLib.Interpreter
                     }
                     
                     var topNode = _nodeStack.Pop();
-                    _result.Add(topNode);
                     if (_nodeStack.Count != 0)
                         throw new Exception($"node stack is not empty with {_nodeStack.Count} elements.");
+                    index = i + 1;
+                    return topNode;
                 }
                 else if (_opCodes.TryGetValue(token.TokenType, out var operatorInfo))
                 {
@@ -324,8 +364,8 @@ namespace CompDevLib.Interpreter
             var paramNode = _nodeStack.Pop();
             if (_nodeStack.Count != 0)
                 throw new Exception($"node stack is not empty with {_nodeStack.Count} elements.");
-            _result.Add(paramNode);
-            return _result.ToArray();
+            index = tokens.Count;
+            return paramNode;
         }
 
         private ASTNode BuildValueNode(Token token)
@@ -376,7 +416,7 @@ namespace CompDevLib.Interpreter
             public static ValueInfo Print(TContext context, ASTNode[] parameters)
             {
                 var param0Str = parameters[0].GetAnyValue(context.Environment);
-                context.Environment.Logger.Info(param0Str?.ToString() ?? "null");
+                Console.WriteLine(param0Str?.ToString() ?? "null");
                 return ValueInfo.Void;
             }
 

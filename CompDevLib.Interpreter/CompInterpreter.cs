@@ -41,7 +41,9 @@ namespace CompDevLib.Interpreter
             {ETokenType.MULT, new OperatorInfo(EOpCode.Mult, 2, 5)},
             {ETokenType.DIV, new OperatorInfo(EOpCode.Div, 2, 5)},
             {ETokenType.MOD, new OperatorInfo(EOpCode.Mod, 2, 5)},
-            {ETokenType.POW, new OperatorInfo(EOpCode.Pow, 2, 6)},
+            {ETokenType.NEG, new OperatorInfo(EOpCode.Neg, 1, 6)},
+            {ETokenType.POS, new OperatorInfo(EOpCode.Pos, 1, 6)},
+            {ETokenType.POW, new OperatorInfo(EOpCode.Pow, 2, 7)},
             {ETokenType.AND, new OperatorInfo(EOpCode.And, 2, 1)},
             {ETokenType.OR, new OperatorInfo(EOpCode.Or, 2, 1)},
             {ETokenType.NOT, new OperatorInfo(EOpCode.Not, 1, 1)},
@@ -55,6 +57,12 @@ namespace CompDevLib.Interpreter
             {ETokenType.FLOAT, EValueType.Float},
             {ETokenType.BOOL, EValueType.Bool},
             {ETokenType.STR, EValueType.Str},
+        };
+
+        private readonly Dictionary<ETokenType, ETokenType> _specialUnary = new()
+        {
+            {ETokenType.ADD, ETokenType.POS},
+            {ETokenType.SUB, ETokenType.NEG},
         };
 
         private readonly Stack<Token> _operatorTokenStack;
@@ -327,6 +335,14 @@ namespace CompDevLib.Interpreter
                     index = i + 1;
                     return topNode;
                 }
+                else if (_specialUnary.TryGetValue(token.TokenType, out var specialUnaryToken) &&
+                         IsInUnaryOperatorPosition(_opCodes[specialUnaryToken]))
+                {
+                    _operatorTokenStack.Push(new Token
+                    {
+                        TokenType = specialUnaryToken
+                    });
+                }
                 else if (_opCodes.TryGetValue(token.TokenType, out var operatorInfo))
                 {
                     while (_operatorTokenStack.Count > 0)
@@ -366,6 +382,16 @@ namespace CompDevLib.Interpreter
                 throw new Exception($"node stack is not empty with {_nodeStack.Count} elements.");
             index = tokens.Count;
             return paramNode;
+        }
+
+        private bool IsInUnaryOperatorPosition(OperatorInfo unaryOperator)
+        {
+            if (_operatorTokenStack.Count == 0) return true;
+
+            var topOperator = _operatorTokenStack.Peek();
+            if (topOperator.TokenType == ETokenType.OPEN_PR) return true;
+
+            return _opCodes[topOperator.TokenType].Precedence < unaryOperator.Precedence;
         }
 
         private ASTNode BuildValueNode(Token token)

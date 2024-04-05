@@ -211,4 +211,15 @@ public class TestInterpreter
         stopwatch.Stop();
         Console.WriteLine($"Execute pre-built and optimized instruction time cost: {stopwatch.ElapsedMilliseconds}\n");
     }
+
+    [Test]
+    public void TestNegativeNumber()
+    {
+        var interpreter = new CompInterpreter<BasicContext>(false);
+        var context = new BasicContext();
+
+        var expression = "(+12)^2";
+        var value = interpreter.EvaluateExpression<int>(context, expression);
+        Console.WriteLine($"{expression} = {value}");
+    }
 }

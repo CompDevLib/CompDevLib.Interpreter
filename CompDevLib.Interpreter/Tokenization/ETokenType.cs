@@ -29,6 +29,8 @@ namespace CompDevLib.Interpreter.Tokenization
         DIV,
         MOD,
         POW,
+        NEG,
+        POS,
 
         #endregion
 

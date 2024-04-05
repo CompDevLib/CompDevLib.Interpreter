@@ -4,7 +4,7 @@ namespace CompDevLib.Interpreter.Parse
     {
         Eq, Ne, Lt, Gt, Le, Ge, 
         Add, Sub, Mult, Div, Mod, Pow,
-        Neg, Inc, Dec, 
+        Neg, Pos, Inc, Dec, 
         And, Or, Not, 
         Ternary,
         Member,

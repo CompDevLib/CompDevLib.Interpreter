@@ -8,24 +8,45 @@ namespace CompDevLib.Interpreter
     {
         public readonly EvaluationStack EvaluationStack;
         private object _currentOwner;
-        private readonly List<ValueSelector> _valueSelectors;
+        private readonly List<IValueSelector> _valueSelectors;
 
         public CompEnvironment()
         {
             EvaluationStack = new EvaluationStack();
-            _valueSelectors = new List<ValueSelector>();
+            _valueSelectors = new List<IValueSelector>();
         }
 
-        public void RegisterValueSelector(ValueSelector valueSelector)
+        public T CurrentOwnerAs<T>()
+        {
+            return (T)_currentOwner;
+        }
+
+        public void RegisterValueSelector(IValueSelector.SelectValueFunc selectValueFunc)
+        {
+            _valueSelectors.Add(new ValueSelector(selectValueFunc));
+        }
+
+        public void RegisterValueSelector(IValueSelector valueSelector)
         {
             _valueSelectors.Add(valueSelector);
         }
 
-        public void UnregisterValueSelector(ValueSelector valueSelector)
+        public void UnregisterValueSelector(IValueSelector.SelectValueFunc selectValueFunc)
         {
             for (int i = _valueSelectors.Count - 1; i >= 0; i--)
             {
-                if (!valueSelector.Equals(_valueSelectors[i])) continue;
+                if (_valueSelectors[i] is not ValueSelector valueSelector ||
+                    !valueSelector.EqualsToFunc(selectValueFunc)) continue;
+                _valueSelectors.RemoveAt(i);
+                return;
+            }
+        }
+
+        public void UnregisterValueSelector(IValueSelector valueSelector)
+        {
+            for (int i = _valueSelectors.Count - 1; i >= 0; i--)
+            {
+                if (_valueSelectors[i] != valueSelector) continue;
                 _valueSelectors.RemoveAt(i);
                 return;
             }
@@ -33,9 +54,17 @@ namespace CompDevLib.Interpreter
 
         public ValueInfo SelectValue(string key)
         {
+            if (_currentOwner is IValueSelector valueSelector)
+            {
+                var result = valueSelector.SelectValue(this, key);
+                if (result.Offset >= 0) return result;
+                throw new ArgumentOutOfRangeException(nameof(key),
+                    $"Unable to select member of owner {_currentOwner} with key {key}");
+            }
+
             for (int i = _valueSelectors.Count - 1; i >= 0; i--)
             {
-                var result = _valueSelectors[i].Invoke(this, key);
+                var result = _valueSelectors[i].SelectValue(this, key);
                 if (result.Offset >= 0)
                     return result;
             }
@@ -349,6 +378,8 @@ namespace CompDevLib.Interpreter
             {
                 case EOpCode.Neg:
                     return PushEvaluationResult(-val);
+                case EOpCode.Pos:
+                    return PushEvaluationResult(val);
                 case EOpCode.Inc:
                     return PushEvaluationResult(val + 1);
                 case EOpCode.Dec:

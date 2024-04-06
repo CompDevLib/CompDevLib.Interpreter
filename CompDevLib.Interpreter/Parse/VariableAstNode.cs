@@ -2,8 +2,6 @@ using System;
 
 namespace CompDevLib.Interpreter.Parse
 {
-    public delegate ValueInfo ValueSelector(CompEnvironment context, string value);
-
     public class VariableAstNode : ASTNode
     {
         public readonly string Identifier;

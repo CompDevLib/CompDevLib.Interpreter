@@ -218,8 +218,17 @@ public class TestInterpreter
         var interpreter = new CompInterpreter<BasicContext>(false);
         var context = new BasicContext();
 
-        var expression = "(+12)^2";
-        var value = interpreter.EvaluateExpression<int>(context, expression);
-        Console.WriteLine($"{expression} = {value}");
+        WriteEvaluation("(+12)^2", 144);
+        WriteEvaluation("(-12)^2", 144);
+        WriteEvaluation("-12^2", -144);
+        WriteEvaluation("1+1", 2);
+        WriteEvaluation("1+(-1)", 0);
+
+        void WriteEvaluation(string expr, int expectedVal)
+        {
+            var value = interpreter.EvaluateExpression<int>(context, expr);
+            Console.WriteLine($"{expr} = {value}");
+            Assert.That(value, Is.EqualTo(expectedVal));
+        }
     }
 }

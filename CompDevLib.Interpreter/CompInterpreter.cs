@@ -335,16 +335,16 @@ namespace CompDevLib.Interpreter
                     index = i + 1;
                     return topNode;
                 }
-                else if (_specialUnary.TryGetValue(token.TokenType, out var specialUnaryToken) &&
-                         IsInUnaryOperatorPosition(_opCodes[specialUnaryToken]))
-                {
-                    _operatorTokenStack.Push(new Token
-                    {
-                        TokenType = specialUnaryToken
-                    });
-                }
                 else if (_opCodes.TryGetValue(token.TokenType, out var operatorInfo))
                 {
+                    if (_specialUnary.TryGetValue(token.TokenType, out var specialUnaryToken))
+                    {
+                        if (i == index || tokens[i - 1].TokenType == ETokenType.OPEN_PR)
+                        {
+                            token.TokenType = specialUnaryToken;
+                            operatorInfo = _opCodes[specialUnaryToken];
+                        }
+                    }
                     while (_operatorTokenStack.Count > 0)
                     {
                         var topOperator = _operatorTokenStack.Peek();
@@ -383,17 +383,7 @@ namespace CompDevLib.Interpreter
             index = tokens.Count;
             return paramNode;
         }
-
-        private bool IsInUnaryOperatorPosition(OperatorInfo unaryOperator)
-        {
-            if (_operatorTokenStack.Count == 0) return true;
-
-            var topOperator = _operatorTokenStack.Peek();
-            if (topOperator.TokenType == ETokenType.OPEN_PR) return true;
-
-            return _opCodes[topOperator.TokenType].Precedence < unaryOperator.Precedence;
-        }
-
+        
         private ASTNode BuildValueNode(Token token)
         {
             switch (token.TokenType)

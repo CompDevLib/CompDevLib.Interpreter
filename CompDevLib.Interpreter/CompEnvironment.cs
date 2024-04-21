@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using CompDevLib.Interpreter.Parse;
 
 namespace CompDevLib.Interpreter
@@ -162,6 +163,35 @@ namespace CompDevLib.Interpreter
                     {
                         var valueB = EvaluationStack.PopObject<string>();
                         return Evaluate(opCode, valueA, valueB);
+                    }
+
+                    switch (valueInfoB.ValueType)
+                    {
+                        case EValueType.Int:
+                        {
+                            var valueB = EvaluationStack.PopUnmanaged<int>();
+                            return Evaluate(opCode, valueA, valueB.ToString());
+                        }
+                        case EValueType.Float:
+                        {
+                            var valueB = EvaluationStack.PopUnmanaged<float>();
+                            return Evaluate(opCode, valueA, valueB.ToString(CultureInfo.InvariantCulture));
+                        }
+                        case EValueType.Bool:
+                        {
+                            var valueB = EvaluationStack.PopUnmanaged<bool>();
+                            return Evaluate(opCode, valueA, valueB.ToString(CultureInfo.InvariantCulture));
+                        }
+                        case EValueType.Str:
+                        {
+                            var valueB = EvaluationStack.PopObject<string>();
+                            return Evaluate(opCode, valueA, valueB);
+                        }
+                        case EValueType.Obj:
+                        {
+                            var valueB = EvaluationStack.PopObject<object>();
+                            return Evaluate(opCode, valueA, valueB.ToString());
+                        }
                     }
                     break;
                 }

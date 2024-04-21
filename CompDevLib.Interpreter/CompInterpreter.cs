@@ -104,19 +104,19 @@ namespace CompDevLib.Interpreter
         
         public void AddFunctionDefinition(string funcIdentifier, Delegate func)
         {
-            var convertedFunction = new ConvertedFunction<TContext>(func);
+            var convertedFunction = new ConvertedFunction<TContext>(funcIdentifier, func);
             DefinedFunctions.Add(funcIdentifier, convertedFunction);
         }
 
         public void AddFunctionDefinition(string funcIdentifier, MethodInfo methodInfo)
         {
-            var convertedFunction = new ConvertedFunction<TContext>(methodInfo);
+            var convertedFunction = new ConvertedFunction<TContext>(funcIdentifier, methodInfo);
             DefinedFunctions.Add(funcIdentifier, convertedFunction);
         }
         
         public void AddFunctionDefinition(string funcIdentifier, StandardFunction<TContext>.Function func)
         {
-            var standardFunction = new StandardFunction<TContext>(func);
+            var standardFunction = new StandardFunction<TContext>(funcIdentifier, func);
             DefinedFunctions.Add(funcIdentifier, standardFunction);
         }
 
@@ -154,7 +154,7 @@ namespace CompDevLib.Interpreter
             var evaluationStack = context.Environment.EvaluationStack;
             var retValInfo = instruction.Execute(context);
             
-            return GetResult<T>(evaluationStack, retValInfo, instruction.InstructionStr);
+            return GetResult<T>(evaluationStack, retValInfo, instruction.ToString());
         }
 
         public T EvaluateExpression<T>(TContext context, string expressionStr)

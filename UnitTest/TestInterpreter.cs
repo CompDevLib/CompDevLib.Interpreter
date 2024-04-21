@@ -146,7 +146,7 @@ public class TestInterpreter
             var retA = interpreter.Execute<float>("TestFunc1 12, 12.0, false");
             Assert.That((int) retA == 144);
         }
-        Console.WriteLine($"Standard function call time: {stopwatch.ElapsedMilliseconds}\n");
+        Console.WriteLine($"Standard function call time: {stopwatch.ElapsedMilliseconds}");
 
         stopwatch.Restart();
         for (int i = 0; i < executionCount; i++)
@@ -165,6 +165,15 @@ public class TestInterpreter
         }
         stopwatch.Stop();
         Console.WriteLine($"Converted function with context call time: {stopwatch.ElapsedMilliseconds}");
+        
+        stopwatch.Restart();
+        for (int i = 0; i < executionCount; i++)
+        {
+            var retB = TestFunc3(context, 12, 12.0f, false);
+            Assert.That((int)retB == 144);
+        }
+        stopwatch.Stop();
+        Console.WriteLine($"c# direct call time: {stopwatch.ElapsedMilliseconds}");
     }
 
     [Test]
@@ -190,7 +199,7 @@ public class TestInterpreter
             var retA = interpreter.Execute<float>(context, instructionStr);
             Assert.That((int) retA == 144);
         }
-        Console.WriteLine($"Execute instruction string directly time cost: {stopwatch.ElapsedMilliseconds}\n");
+        Console.WriteLine($"Execute instruction string directly time cost: {stopwatch.ElapsedMilliseconds}");
 
         stopwatch.Restart();
         for (int i = 0; i < executionCount; i++)
@@ -199,7 +208,7 @@ public class TestInterpreter
             Assert.That((int) retB == 144);
         }
         stopwatch.Stop();
-        Console.WriteLine($"Execute pre-built instruction time cost: {stopwatch.ElapsedMilliseconds}\n");
+        Console.WriteLine($"Execute pre-built instruction time cost: {stopwatch.ElapsedMilliseconds}");
         
         stopwatch.Restart();
         instruction.Optimize(context);
@@ -209,7 +218,16 @@ public class TestInterpreter
             Assert.That((int) retB == 144);
         }
         stopwatch.Stop();
-        Console.WriteLine($"Execute pre-built and optimized instruction time cost: {stopwatch.ElapsedMilliseconds}\n");
+        Console.WriteLine($"Execute pre-built and optimized instruction time cost: {stopwatch.ElapsedMilliseconds}");
+        
+        stopwatch.Restart();
+        for (int i = 0; i < executionCount; i++)
+        {
+            var retB = TestFunc((2 * 3 + 3) * 2 / 3 + (1 + 2) * 2, MathF.Pow(2, 3) + 4.0f, false);
+            Assert.That((int)retB == 144);
+        }
+        stopwatch.Stop();
+        Console.WriteLine($"c# direct call time cost: {stopwatch.ElapsedMilliseconds}");
     }
 
     [Test]

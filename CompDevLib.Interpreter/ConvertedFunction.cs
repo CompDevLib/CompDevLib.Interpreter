@@ -11,9 +11,11 @@ namespace CompDevLib.Interpreter
         public readonly EValueType ReturnValueType;
         public readonly bool NeedContext;
         private readonly object[] _paramObjects;
+        public string Name { get; }
 
-        public ConvertedFunction(MethodInfo methodInfo)
+        public ConvertedFunction(string name, MethodInfo methodInfo)
         {
+            Name = name;
             Function = methodInfo;
             var parameters = methodInfo.GetParameters();
             _paramObjects = new object[parameters.Length];
@@ -21,8 +23,9 @@ namespace CompDevLib.Interpreter
             ReturnValueType = Utilities.ParseValueType(methodInfo.ReturnType);
         }
 
-        public ConvertedFunction(Delegate function)
+        public ConvertedFunction(string name, Delegate function)
         {
+            Name = name;
             Function = function.Method;
             var parameters = function.Method.GetParameters();
             _paramObjects = new object[parameters.Length];
@@ -64,6 +67,11 @@ namespace CompDevLib.Interpreter
                 EValueType.Obj => context.Environment.PushEvaluationResult(result),
                 _ => throw new Exception("Impossible branch."),
             };
+        }
+        
+        public override string ToString()
+        {
+            return Name;
         }
     }
 }

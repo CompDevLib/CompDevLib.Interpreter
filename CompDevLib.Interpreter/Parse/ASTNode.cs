@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using CompDevLib.Interpreter.Tokenization;
 
 namespace CompDevLib.Interpreter.Parse
@@ -27,6 +28,20 @@ namespace CompDevLib.Interpreter.Parse
                 EValueType.Bool => context.EvaluationStack.PopUnmanaged<bool>(),
                 EValueType.Str => context.EvaluationStack.PopObject<string>(),
                 EValueType.Obj => context.EvaluationStack.PopObject<object>(),
+                _ => null
+            };
+        }
+
+        public string GetAnyValueAsString(CompEnvironment context)
+        {
+            var valueInfo = Evaluate(context);
+            return valueInfo.ValueType switch
+            {
+                EValueType.Int => context.EvaluationStack.PopUnmanaged<int>().ToString(),
+                EValueType.Float => context.EvaluationStack.PopUnmanaged<float>().ToString(CultureInfo.InvariantCulture),
+                EValueType.Bool => context.EvaluationStack.PopUnmanaged<bool>().ToString(),
+                EValueType.Str => context.EvaluationStack.PopObject<string>(),
+                EValueType.Obj => context.EvaluationStack.PopObject<object>()?.ToString() ?? null,
                 _ => null
             };
         }

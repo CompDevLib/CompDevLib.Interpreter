@@ -30,6 +30,7 @@ namespace CompDevLib.Interpreter.Tokenization
 		public unsafe void Process(string str)
 		{
 			_tokens.Clear();
+			if(string.IsNullOrEmpty(str)) return;
 			var length = str.Length;
 
 			fixed(char *pData = str)

@@ -7,13 +7,15 @@ namespace CompDevLib.Interpreter
     {
         private readonly IFunction<TContext> _function;
         private readonly ASTNode[] _parameters;
+        private readonly IValueModifier<TContext>[] _returnValueModifiers;
         public readonly string InstructionStr;
 
-        public CompInstruction(string instructionStr, IFunction<TContext> func, ASTNode[] parameters)
+        public CompInstruction(string instructionStr, IFunction<TContext> func, ASTNode[] parameters, IValueModifier<TContext>[] returnValueModifiers)
         {
             InstructionStr = instructionStr;
             _function = func;
             _parameters = parameters;
+            _returnValueModifiers = returnValueModifiers;
         }
 
         public ValueInfo Execute(TContext context)

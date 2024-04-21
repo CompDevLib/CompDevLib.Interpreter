@@ -9,6 +9,7 @@ namespace CompDevLib.Interpreter
     public class CompInterpreter<TContext> where TContext : ICompInterpreterContext<TContext>
     {
         public readonly Dictionary<string, IFunction<TContext>> DefinedFunctions;
+        public readonly Dictionary<string, IValueModifier<TContext>> DefinedValueModifiers;
 
         private readonly Lexer _lexer;
 
@@ -68,12 +69,14 @@ namespace CompDevLib.Interpreter
         private readonly Stack<Token> _operatorTokenStack;
         private readonly Stack<ASTNode> _nodeStack;
         private readonly List<ASTNode> _result;
+        private readonly List<IValueModifier<TContext>> _modifiers;
         public bool OptimizeInstructionOnBuild;
         public TContext DefaultContext;
 
         public CompInterpreter(bool optimizeInstructionOnBuild = true)
         {
             DefinedFunctions = new Dictionary<string, IFunction<TContext>>();
+            DefinedValueModifiers = new Dictionary<string, IValueModifier<TContext>>();
             _lexer = new Lexer();
             _operatorTokenStack = new Stack<Token>();
             _nodeStack = new Stack<ASTNode>();
@@ -85,6 +88,7 @@ namespace CompDevLib.Interpreter
         public CompInterpreter(TContext defaultContext, bool optimizeInstructionOnBuild = true)
         {
             DefinedFunctions = new Dictionary<string, IFunction<TContext>>();
+            DefinedValueModifiers = new Dictionary<string, IValueModifier<TContext>>();
             _lexer = new Lexer();
             _operatorTokenStack = new Stack<Token>();
             _nodeStack = new Stack<ASTNode>();
@@ -98,6 +102,7 @@ namespace CompDevLib.Interpreter
         {
             AddFunctionDefinition(nameof(PredefinedFunctions.Print), PredefinedFunctions.Print);
             AddFunctionDefinition(nameof(PredefinedFunctions.Evaluate), PredefinedFunctions.Evaluate);
+            AddReturnValueModifierDefinition("neg", new ValueNegator<TContext>());
         }
         
         #region FunctionDefinition
@@ -126,6 +131,11 @@ namespace CompDevLib.Interpreter
         }
         
         #endregion
+
+        public void AddReturnValueModifierDefinition(string funcIdentifier, IValueModifier<TContext> modifier)
+        {
+            DefinedValueModifiers.Add(funcIdentifier, modifier);
+        }
 
         #region Execution
 
@@ -231,12 +241,12 @@ namespace CompDevLib.Interpreter
             
             var parameters = ParseParameters(tokens, 1);
             
-            var instruction = new CompInstruction<TContext>(instructionStr, func, parameters);
+            var instruction = new CompInstruction<TContext>(instructionStr, func, parameters, Array.Empty<IValueModifier<TContext>>());
             if(OptimizeInstructionOnBuild) instruction.Optimize(context);
             return instruction;
         }
         
-        public CompInstruction<TContext> BuildInstruction(TContext context, string funcIdentifier, string paramStr)
+        public CompInstruction<TContext> BuildInstruction(TContext context, string funcIdentifier, string paramStr, string modifierStr = null)
         {
             if (!DefinedFunctions.TryGetValue(funcIdentifier, out var func))
                 throw new ArgumentException($"Undefined function {funcIdentifier}.");
@@ -244,8 +254,12 @@ namespace CompDevLib.Interpreter
             _lexer.Process(paramStr);
             var tokens = _lexer.GetTokens();
             var parameters = ParseParameters(tokens, 0);
-            
-            var instruction = new CompInstruction<TContext>($"{funcIdentifier}: {paramStr}", func, parameters);
+
+            _lexer.Process(modifierStr);
+            tokens = _lexer.GetTokens();
+            var modifiers = ParseValueModifiers(tokens, 0);
+
+            var instruction = new CompInstruction<TContext>($"{funcIdentifier}: {paramStr}", func, parameters, modifiers);
             if(OptimizeInstructionOnBuild) instruction.Optimize(context);
             return instruction;
         }
@@ -270,7 +284,7 @@ namespace CompDevLib.Interpreter
                 }
             }
             
-            var instruction = new CompInstruction<TContext>(funcIdentifier, func, parameters);
+            var instruction = new CompInstruction<TContext>(funcIdentifier, func, parameters, null);
             if(OptimizeInstructionOnBuild) instruction.Optimize(context);
             return instruction;
         }
@@ -295,6 +309,32 @@ namespace CompDevLib.Interpreter
                 _result.Add(node);
             }
             return _result.ToArray();
+        }
+
+        private IValueModifier<TContext>[] ParseValueModifiers(IReadOnlyList<Token> tokens, int beginIndex)
+        {
+            if (beginIndex >= tokens.Count) return Array.Empty<IValueModifier<TContext>>();
+            
+            _modifiers.Clear();
+            var index = beginIndex;
+            for (;;)
+            {
+                // add modifier
+                var token = tokens[index];
+                if (token.TokenType == ETokenType.IDENTIFIER)
+                {
+                    var modifier = DefinedValueModifiers[token.Value];
+                    _modifiers.Add(modifier);
+                }
+                index++;
+                
+                // skip comma and check has next
+                token = tokens[index];
+                if(token.TokenType != ETokenType.COMMA) break;
+                index++;
+            }
+
+            return _modifiers.ToArray();
         }
 
         private ASTNode ParseExpression(IReadOnlyList<Token> tokens, ref int index)

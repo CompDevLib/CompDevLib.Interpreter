@@ -81,6 +81,7 @@ namespace CompDevLib.Interpreter
             _operatorTokenStack = new Stack<Token>();
             _nodeStack = new Stack<ASTNode>();
             _result = new List<ASTNode>();
+            _modifiers = new List<IValueModifier<TContext>>();
             OptimizeInstructionOnBuild = optimizeInstructionOnBuild;
             InitializePredefinedFunctions();
         }
@@ -313,13 +314,15 @@ namespace CompDevLib.Interpreter
 
         private IValueModifier<TContext>[] ParseValueModifiers(IReadOnlyList<Token> tokens, int beginIndex)
         {
-            if (beginIndex >= tokens.Count) return Array.Empty<IValueModifier<TContext>>();
+            var length = tokens.Count;
+            if (beginIndex >= length) return Array.Empty<IValueModifier<TContext>>();
             
             _modifiers.Clear();
             var index = beginIndex;
             for (;;)
             {
                 // add modifier
+                if(index >= length) break;
                 var token = tokens[index];
                 if (token.TokenType == ETokenType.IDENTIFIER)
                 {
@@ -329,6 +332,7 @@ namespace CompDevLib.Interpreter
                 index++;
                 
                 // skip comma and check has next
+                if(index >= length) break;
                 token = tokens[index];
                 if(token.TokenType != ETokenType.COMMA) break;
                 index++;

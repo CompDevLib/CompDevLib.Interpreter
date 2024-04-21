@@ -21,7 +21,10 @@ namespace CompDevLib.Interpreter
         public ValueInfo Execute(TContext context)
         {
             context.OnExecuteInstruction(this);
-            return _function.Invoke(context, _parameters);
+            var ret = _function.Invoke(context, _parameters);
+            for (int i = 0; i < _returnValueModifiers.Length; i++)
+                ret = _returnValueModifiers[i].ModifyValue(context, ret);
+            return ret;
         }
 
         public T Execute<T>(TContext context)

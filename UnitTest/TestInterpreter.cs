@@ -249,4 +249,29 @@ public class TestInterpreter
             Assert.That(value, Is.EqualTo(expectedVal));
         }
     }
+
+    [Test]
+    public void TestModifier()
+    {
+        static bool TestFunc()
+        {
+            return true;
+        }
+
+        var interpreter = new CompInterpreter<BasicContext>(false);
+        var context = new BasicContext();
+        interpreter.AddFunctionDefinition("TestFunc", TestFunc);
+
+        {
+            var inst = interpreter.BuildInstruction(context, "TestFunc");
+            var value = inst.Execute<bool>(context);
+            Assert.IsTrue(value);
+        }
+
+        {
+            var inst = interpreter.BuildInstruction(context, "TestFunc", null, "neg");
+            var value = inst.Execute<bool>(context);
+            Assert.IsFalse(value);
+        }
+    }
 }

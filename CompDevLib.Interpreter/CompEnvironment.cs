@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using CompDevLib.Interpreter.Parse;
 
@@ -201,13 +203,19 @@ namespace CompDevLib.Interpreter
                     if (opCode == EOpCode.Member)
                     {
                         _currentOwner = valueA;
-                        if (operandB is VariableAstNode astNode)
+                        if (operandB is VariableAstNode variableAstNode)
                         {
-                            var valueInfoB = astNode.Evaluate(this);
+                            var valueInfoB = variableAstNode.Evaluate(this);
                             _currentOwner = null;
                             return valueInfoB;
                         }
-                        // TODO: indexing
+                        if (operandB is IntValueAstNode intValueAstNode)
+                        {
+                            var index = intValueAstNode.GetIntValue(this);
+                            var elementValueInfo = EvaluateListElement(_currentOwner, index);
+                            _currentOwner = null;
+                            return elementValueInfo;
+                        }
                     }
                     break;
                 }
@@ -225,6 +233,19 @@ namespace CompDevLib.Interpreter
 
             var condition = EvaluationStack.PopUnmanaged<bool>();
             return condition ? operandB.Evaluate(this) : operandC.Evaluate(this);
+        }
+
+        public ValueInfo EvaluateListElement(object collection, int index)
+        {
+            return collection switch
+            {
+                IList<int> intList => PushEvaluationResult(intList[index]),
+                IList<float> floatList => PushEvaluationResult(floatList[index]),
+                IList<bool> boolList => PushEvaluationResult(boolList[index]),
+                IList<string> strList => PushEvaluationResult(strList[index]),
+                IList objList => PushEvaluationResult(objList[index]),
+                _ => ValueInfo.Void,
+            };
         }
 
         private ValueInfo Evaluate(EOpCode opCode, int valA, int valB)

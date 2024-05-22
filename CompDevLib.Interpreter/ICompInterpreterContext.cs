@@ -4,6 +4,7 @@ namespace CompDevLib.Interpreter
     {
         public CompEnvironment Environment { get; }
         void OnExecuteInstruction(CompInstruction<T> instruction);
+        void OnInstructionEvaluated(ValueInfo ret);
         CompInstruction<T> GetExecutingInstruction();
     }
 }

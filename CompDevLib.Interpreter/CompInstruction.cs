@@ -24,6 +24,7 @@ namespace CompDevLib.Interpreter
             var ret = _function.Invoke(context, _parameters);
             for (int i = 0; i < _returnValueModifiers.Length; i++)
                 ret = _returnValueModifiers[i].ModifyValue(context, ret);
+            context.OnInstructionEvaluated(ret);
             return ret;
         }
 

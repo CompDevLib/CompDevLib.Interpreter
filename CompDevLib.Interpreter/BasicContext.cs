@@ -18,6 +18,10 @@ namespace CompDevLib.Interpreter
             _currInstruction = instruction;
         }
 
+        public void OnInstructionEvaluated(ValueInfo ret)
+        {
+        }
+
         public CompInstruction<BasicContext> GetExecutingInstruction()
         {
             return _currInstruction;

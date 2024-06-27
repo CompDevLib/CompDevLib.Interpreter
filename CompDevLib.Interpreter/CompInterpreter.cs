@@ -476,7 +476,7 @@ namespace CompDevLib.Interpreter
             public static ValueInfo Print(TContext context, ASTNode[] parameters)
             {
                 var param0Str = parameters[0].GetAnyValue(context.Environment);
-                Console.WriteLine(param0Str?.ToString() ?? "null");
+                System.Console.WriteLine(param0Str?.ToString() ?? "null");
                 return ValueInfo.Void;
             }
 

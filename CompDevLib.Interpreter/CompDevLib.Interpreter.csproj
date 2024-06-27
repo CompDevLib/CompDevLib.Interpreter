@@ -14,4 +14,8 @@
       <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\CompDevLib\CompDevLib\CompDevLib.csproj" />
+    </ItemGroup>
+
 </Project>

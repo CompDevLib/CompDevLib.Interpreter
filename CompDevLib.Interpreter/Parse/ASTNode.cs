@@ -31,6 +31,29 @@ namespace CompDevLib.Interpreter.Parse
                 _ => null
             };
         }
+        
+        public object GetAnyValue(CompEnvironment context, Type typeHint)
+        {
+            var valueInfo = Evaluate(context);
+            switch (valueInfo.ValueType)
+            {
+                case EValueType.Int:
+                    return context.EvaluationStack.PopUnmanaged<int>();
+                case EValueType.Float:
+                    return context.EvaluationStack.PopUnmanaged<float>();
+                case EValueType.Bool:
+                    return context.EvaluationStack.PopUnmanaged<bool>();
+                case EValueType.Str:
+                    return context.EvaluationStack.PopObject<string>();
+                case EValueType.Obj:
+                    var obj = context.EvaluationStack.PopObject<object>();
+                    if (obj is IFormatProvider formatProvider)
+                        return formatProvider.GetFormat(typeHint);
+                    return obj;
+                default:
+                    return null;
+            }
+        }
 
         public string GetAnyValueAsString(CompEnvironment context)
         {

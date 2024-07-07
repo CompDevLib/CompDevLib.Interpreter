@@ -11,15 +11,16 @@ namespace CompDevLib.Interpreter
         public readonly EValueType ReturnValueType;
         public readonly bool NeedContext;
         private readonly object[] _paramObjects;
+        private readonly ParameterInfo[] _paramInfos;
         public string Name { get; }
 
         public ConvertedFunction(string name, MethodInfo methodInfo)
         {
             Name = name;
             Function = methodInfo;
-            var parameters = methodInfo.GetParameters();
-            _paramObjects = new object[parameters.Length];
-            NeedContext = parameters.Length > 0 && parameters[0].ParameterType == typeof(TContext);
+            _paramInfos = methodInfo.GetParameters();
+            _paramObjects = new object[_paramInfos.Length];
+            NeedContext = _paramInfos.Length > 0 && _paramInfos[0].ParameterType == typeof(TContext);
             ReturnValueType = Utilities.ParseValueType(methodInfo.ReturnType);
         }
 
@@ -41,14 +42,14 @@ namespace CompDevLib.Interpreter
                     throw new ArgumentException($"Insufficient argument count: {_paramObjects.Length - 1} needed, {parameters.Length} given.");
                 _paramObjects[0] = context;
                 for (int i = 1; i < _paramObjects.Length; i++)
-                    _paramObjects[i] = parameters[i - 1].GetAnyValue(context.Environment);
+                    _paramObjects[i] = parameters[i - 1].GetAnyValue(context.Environment, _paramInfos[i].ParameterType);
             }
             else
             {
                 if (_paramObjects.Length != parameters.Length)
                     throw new ArgumentException($"Insufficient argument count: {_paramObjects.Length} needed, {parameters.Length} given.");
                 for (int i = 0; i < parameters.Length; i++)
-                    _paramObjects[i] = parameters[i].GetAnyValue(context.Environment);
+                    _paramObjects[i] = parameters[i].GetAnyValue(context.Environment, _paramInfos[i].ParameterType);
             }
             // TODO: Type conversion here is pretty slow and unnecessary for most cases, so it is not supported for now.
             //Convert.ChangeType(parameters[i].GetAnyValue(context.Environment), parameterInfos[i].ParameterType);

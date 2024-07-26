@@ -269,7 +269,7 @@ namespace CompDevLib.Interpreter
                 case EOpCode.Mod:
                     return PushEvaluationResult(valA % valB);
                 case EOpCode.Pow:
-                    return PushEvaluationResult((int)MathF.Pow(valA, valB));
+                    return PushEvaluationResult((int)Math.Pow(valA, valB));
                 default:
                     throw new EvaluationException(opCode, valA.GetType(), valB.GetType());
             }
@@ -302,7 +302,7 @@ namespace CompDevLib.Interpreter
                 case EOpCode.Mod:
                     return PushEvaluationResult(valA % valB);
                 case EOpCode.Pow:
-                    return PushEvaluationResult(MathF.Pow(valA, valB));
+                    return PushEvaluationResult((float)Math.Pow(valA, valB));
                 default:
                     throw new EvaluationException(opCode, valA.GetType(), valB.GetType());
             }
@@ -335,7 +335,7 @@ namespace CompDevLib.Interpreter
                 case EOpCode.Mod:
                     return PushEvaluationResult(valA % valB);
                 case EOpCode.Pow:
-                    return PushEvaluationResult(MathF.Pow(valA, valB));
+                    return PushEvaluationResult((float)Math.Pow(valA, valB));
                 default:
                     throw new EvaluationException(opCode, valA.GetType(), valB.GetType());
             }
@@ -368,7 +368,7 @@ namespace CompDevLib.Interpreter
                 case EOpCode.Mod:
                     return PushEvaluationResult(valA % valB);
                 case EOpCode.Pow:
-                    return PushEvaluationResult(MathF.Pow(valA, valB));
+                    return PushEvaluationResult((float)Math.Pow(valA, valB));
                 default:
                     throw new EvaluationException(opCode, valA.GetType(), valB.GetType());
             }

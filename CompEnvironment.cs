@@ -9,15 +9,9 @@ namespace CompDevLib.Interpreter
 {
     public class CompEnvironment
     {
-        public readonly EvaluationStack EvaluationStack;
         private object _currentOwner;
-        private readonly List<IValueSelector> _valueSelectors;
-
-        public CompEnvironment()
-        {
-            EvaluationStack = new EvaluationStack();
-            _valueSelectors = new List<IValueSelector>();
-        }
+        public readonly EvaluationStack EvaluationStack = new();
+        private readonly List<IValueSelector> _valueSelectors = new();
 
         public T CurrentOwnerAs<T>()
         {

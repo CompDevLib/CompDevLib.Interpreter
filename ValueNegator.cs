@@ -3,11 +3,11 @@ using CompDevLib.Interpreter.Parse;
 
 namespace CompDevLib.Interpreter
 {
-    public class ValueNegator<TContext> : IValueModifier<TContext> where TContext : ICompInterpreterContext<TContext>
+    public class ValueNegator<TContext> : IValueModifier<TContext> where TContext : IInterpreterContext<TContext>
     {
         public ValueInfo ModifyValue(TContext context, ValueInfo srcValueInfo)
         {
-            var env = context.Environment;
+            var env = context.Evaluator;
             switch (srcValueInfo.ValueType)
             {
                 case EValueType.Int:

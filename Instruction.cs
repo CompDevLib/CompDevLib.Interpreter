@@ -3,14 +3,14 @@ using CompDevLib.Interpreter.Tokenization;
 
 namespace CompDevLib.Interpreter
 {
-    public class CompInstruction<TContext> where TContext : ICompInterpreterContext<TContext>
+    public class Instruction<TContext> where TContext : IInterpreterContext<TContext>
     {
         private readonly IFunction<TContext> _function;
         private readonly ASTNode[] _parameters;
         private readonly IValueModifier<TContext>[] _returnValueModifiers;
         public readonly string InstructionStr;
 
-        public CompInstruction(string instructionStr, IFunction<TContext> func, ASTNode[] parameters, IValueModifier<TContext>[] returnValueModifiers)
+        public Instruction(string instructionStr, IFunction<TContext> func, ASTNode[] parameters, IValueModifier<TContext>[] returnValueModifiers)
         {
             InstructionStr = instructionStr;
             _function = func;
@@ -31,10 +31,10 @@ namespace CompDevLib.Interpreter
         public T Execute<T>(TContext context)
         {
             var ret = Execute(context);
-            return GetResult<T>(context.Environment, ret);
+            return GetResult<T>(context.Evaluator, ret);
         }
         
-        private T GetResult<T>(CompEnvironment environment, ValueInfo retValInfo)
+        private T GetResult<T>(Evaluator environment, ValueInfo retValInfo)
         {
             var evaluationStack = environment.EvaluationStack;
             
@@ -43,37 +43,37 @@ namespace CompDevLib.Interpreter
             {
                 case EValueType.Void:
                     if (expectedRetType != typeof(void))
-                        throw CompInstructionException.CreateInvalidReturnType(ToString(), expectedRetType, typeof(void));
+                        throw InstructionRuntimeException.CreateInvalidReturnType(ToString(), expectedRetType, typeof(void));
                     break;
                 case EValueType.Int:
                 {
                     var retVal = evaluationStack.PopUnmanaged<int>();
                     if (retVal is T parsedRetVal) return parsedRetVal;
-                    throw CompInstructionException.CreateInvalidReturnType(ToString(), expectedRetType, typeof(int));
+                    throw InstructionRuntimeException.CreateInvalidReturnType(ToString(), expectedRetType, typeof(int));
                 }
                 case EValueType.Float:
                 {
                     var retVal = evaluationStack.PopUnmanaged<float>();
                     if (retVal is T parsedRetVal) return parsedRetVal;
-                    throw CompInstructionException.CreateInvalidReturnType(ToString(), expectedRetType, typeof(float));
+                    throw InstructionRuntimeException.CreateInvalidReturnType(ToString(), expectedRetType, typeof(float));
                 }
                 case EValueType.Bool:
                 {
                     var retVal = evaluationStack.PopUnmanaged<bool>();
                     if (retVal is T parsedRetVal) return parsedRetVal;
-                    throw CompInstructionException.CreateInvalidReturnType(ToString(), expectedRetType, typeof(bool));
+                    throw InstructionRuntimeException.CreateInvalidReturnType(ToString(), expectedRetType, typeof(bool));
                 }
                 case EValueType.Str:
                 {
                     var retVal = evaluationStack.PopObject<string>();
                     if (retVal is T parsedRetVal) return parsedRetVal;
-                    throw CompInstructionException.CreateInvalidReturnType(ToString(), expectedRetType, typeof(string));
+                    throw InstructionRuntimeException.CreateInvalidReturnType(ToString(), expectedRetType, typeof(string));
                 }
                 case EValueType.Obj:
                 {
                     var retVal = evaluationStack.PopObject<object>();
                     if (retVal is T parsedRetVal) return parsedRetVal;
-                    throw CompInstructionException.CreateInvalidReturnType(ToString(), expectedRetType, retVal.GetType());
+                    throw InstructionRuntimeException.CreateInvalidReturnType(ToString(), expectedRetType, retVal.GetType());
                 }
             }
 
@@ -84,7 +84,7 @@ namespace CompDevLib.Interpreter
         {
             if(_parameters == null) return;
             for (int i = 0; i < _parameters.Length; i++)
-                _parameters[i] = _parameters[i].Optimize(context.Environment);
+                _parameters[i] = _parameters[i].Optimize(context.Evaluator);
         }
 
         public override string ToString()

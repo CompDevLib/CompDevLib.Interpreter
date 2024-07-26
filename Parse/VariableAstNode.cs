@@ -11,9 +11,9 @@ namespace CompDevLib.Interpreter.Parse
             Identifier = identifier;
         }
 
-        public override ValueInfo Evaluate(CompEnvironment context)
+        public override ValueInfo Evaluate(Evaluator evaluator)
         {
-            return context.SelectValue(Identifier);
+            return evaluator.SelectValue(Identifier);
         }
     }
     
@@ -26,7 +26,7 @@ namespace CompDevLib.Interpreter.Parse
             Value = value;
         }
 
-        public override ASTNode Optimize(CompEnvironment context)
+        public override ASTNode Optimize(Evaluator evaluator)
         {
             return this;
         }
@@ -39,9 +39,9 @@ namespace CompDevLib.Interpreter.Parse
     
     public class IntValueAstNode : ValueAstNode<int>
     {
-        public override ValueInfo Evaluate(CompEnvironment context)
+        public override ValueInfo Evaluate(Evaluator evaluator)
         {
-            return context.PushEvaluationResult(Value);
+            return evaluator.PushEvaluationResult(Value);
         }
 
         public IntValueAstNode(int value) : base(value)
@@ -50,9 +50,9 @@ namespace CompDevLib.Interpreter.Parse
     }
     public class FloatValueAstNode : ValueAstNode<float>
     {
-        public override ValueInfo Evaluate(CompEnvironment context)
+        public override ValueInfo Evaluate(Evaluator evaluator)
         {
-            return context.PushEvaluationResult(Value);
+            return evaluator.PushEvaluationResult(Value);
         }
 
         public FloatValueAstNode(float value) : base(value)
@@ -61,9 +61,9 @@ namespace CompDevLib.Interpreter.Parse
     }
     public class BoolValueAstNode : ValueAstNode<bool>
     {
-        public override ValueInfo Evaluate(CompEnvironment context)
+        public override ValueInfo Evaluate(Evaluator evaluator)
         {
-            return context.PushEvaluationResult(Value);
+            return evaluator.PushEvaluationResult(Value);
         }
 
         public BoolValueAstNode(bool value) : base(value)
@@ -72,9 +72,9 @@ namespace CompDevLib.Interpreter.Parse
     }
     public class StringValueAstNode : ValueAstNode<string>
     {
-        public override ValueInfo Evaluate(CompEnvironment context)
+        public override ValueInfo Evaluate(Evaluator evaluator)
         {
-            return context.PushEvaluationResult(Value);
+            return evaluator.PushEvaluationResult(Value);
         }
 
         public StringValueAstNode(string value) : base(value)
@@ -88,9 +88,9 @@ namespace CompDevLib.Interpreter.Parse
         {
         }
 
-        public override ValueInfo Evaluate(CompEnvironment context)
+        public override ValueInfo Evaluate(Evaluator evaluator)
         {
-            return context.PushEvaluationResult(Value);
+            return evaluator.PushEvaluationResult(Value);
         }
     }
 }

@@ -6,47 +6,47 @@ namespace CompDevLib.Interpreter.Parse
 {
     public abstract class ASTNode
     {
-        public abstract ValueInfo Evaluate(CompEnvironment context);
+        public abstract ValueInfo Evaluate(Evaluator evaluator);
 
         public virtual bool IsConstValue()
         {
             return false;
         }
 
-        public virtual ASTNode Optimize(CompEnvironment context)
+        public virtual ASTNode Optimize(Evaluator evaluator)
         {
             return this;
         }
 
-        public object GetAnyValue(CompEnvironment context)
+        public object GetAnyValue(Evaluator evaluator)
         {
-            var valueInfo = Evaluate(context);
+            var valueInfo = Evaluate(evaluator);
             return valueInfo.ValueType switch
             {
-                EValueType.Int => context.EvaluationStack.PopUnmanaged<int>(),
-                EValueType.Float => context.EvaluationStack.PopUnmanaged<float>(),
-                EValueType.Bool => context.EvaluationStack.PopUnmanaged<bool>(),
-                EValueType.Str => context.EvaluationStack.PopObject<string>(),
-                EValueType.Obj => context.EvaluationStack.PopObject<object>(),
+                EValueType.Int => evaluator.EvaluationStack.PopUnmanaged<int>(),
+                EValueType.Float => evaluator.EvaluationStack.PopUnmanaged<float>(),
+                EValueType.Bool => evaluator.EvaluationStack.PopUnmanaged<bool>(),
+                EValueType.Str => evaluator.EvaluationStack.PopObject<string>(),
+                EValueType.Obj => evaluator.EvaluationStack.PopObject<object>(),
                 _ => null
             };
         }
         
-        public object GetAnyValue(CompEnvironment context, Type typeHint)
+        public object GetAnyValue(Evaluator evaluator, Type typeHint)
         {
-            var valueInfo = Evaluate(context);
+            var valueInfo = Evaluate(evaluator);
             switch (valueInfo.ValueType)
             {
                 case EValueType.Int:
-                    return context.EvaluationStack.PopUnmanaged<int>();
+                    return evaluator.EvaluationStack.PopUnmanaged<int>();
                 case EValueType.Float:
-                    return context.EvaluationStack.PopUnmanaged<float>();
+                    return evaluator.EvaluationStack.PopUnmanaged<float>();
                 case EValueType.Bool:
-                    return context.EvaluationStack.PopUnmanaged<bool>();
+                    return evaluator.EvaluationStack.PopUnmanaged<bool>();
                 case EValueType.Str:
-                    return context.EvaluationStack.PopObject<string>();
+                    return evaluator.EvaluationStack.PopObject<string>();
                 case EValueType.Obj:
-                    var obj = context.EvaluationStack.PopObject<object>();
+                    var obj = evaluator.EvaluationStack.PopObject<object>();
                     if (obj is IFormatProvider formatProvider)
                         return formatProvider.GetFormat(typeHint);
                     return obj;
@@ -55,57 +55,57 @@ namespace CompDevLib.Interpreter.Parse
             }
         }
 
-        public string GetAnyValueAsString(CompEnvironment context)
+        public string GetAnyValueAsString(Evaluator evaluator)
         {
-            var valueInfo = Evaluate(context);
+            var valueInfo = Evaluate(evaluator);
             return valueInfo.ValueType switch
             {
-                EValueType.Int => context.EvaluationStack.PopUnmanaged<int>().ToString(),
-                EValueType.Float => context.EvaluationStack.PopUnmanaged<float>().ToString(CultureInfo.InvariantCulture),
-                EValueType.Bool => context.EvaluationStack.PopUnmanaged<bool>().ToString(),
-                EValueType.Str => context.EvaluationStack.PopObject<string>(),
-                EValueType.Obj => context.EvaluationStack.PopObject<object>()?.ToString() ?? null,
+                EValueType.Int => evaluator.EvaluationStack.PopUnmanaged<int>().ToString(),
+                EValueType.Float => evaluator.EvaluationStack.PopUnmanaged<float>().ToString(CultureInfo.InvariantCulture),
+                EValueType.Bool => evaluator.EvaluationStack.PopUnmanaged<bool>().ToString(),
+                EValueType.Str => evaluator.EvaluationStack.PopObject<string>(),
+                EValueType.Obj => evaluator.EvaluationStack.PopObject<object>()?.ToString() ?? null,
                 _ => null
             };
         }
 
-        public int GetIntValue(CompEnvironment context)
+        public int GetIntValue(Evaluator evaluator)
         {
-            var valueInfo = Evaluate(context);
+            var valueInfo = Evaluate(evaluator);
             if (valueInfo.ValueType != EValueType.Int)
                 throw new Exception($"Invalid return type: {EValueType.Int} expected, {valueInfo.ValueType} given.");
-            return context.EvaluationStack.PopUnmanaged<int>();
+            return evaluator.EvaluationStack.PopUnmanaged<int>();
         }
         
-        public bool GetBoolValue(CompEnvironment context)
+        public bool GetBoolValue(Evaluator evaluator)
         {
-            var valueInfo = Evaluate(context);
+            var valueInfo = Evaluate(evaluator);
             if (valueInfo.ValueType != EValueType.Bool)
                 throw new Exception($"Invalid return type: {EValueType.Bool} expected, {valueInfo.ValueType} given.");
-            return context.EvaluationStack.PopUnmanaged<bool>();
+            return evaluator.EvaluationStack.PopUnmanaged<bool>();
         }
-        public float GetFloatValue(CompEnvironment context)
+        public float GetFloatValue(Evaluator evaluator)
         {
-            var valueInfo = Evaluate(context);
+            var valueInfo = Evaluate(evaluator);
             if (valueInfo.ValueType != EValueType.Float)
                 throw new Exception($"Invalid return type: {EValueType.Float} expected, {valueInfo.ValueType} given.");
-            return context.EvaluationStack.PopUnmanaged<float>();
+            return evaluator.EvaluationStack.PopUnmanaged<float>();
         }
 
-        public string GetStringValue(CompEnvironment context)
+        public string GetStringValue(Evaluator evaluator)
         {
-            var valueInfo = Evaluate(context);
+            var valueInfo = Evaluate(evaluator);
             if (valueInfo.ValueType != EValueType.Str)
                 throw new Exception($"Invalid return type: {EValueType.Str} expected, {valueInfo.ValueType} given.");
-            return context.EvaluationStack.PopObject<string>();
+            return evaluator.EvaluationStack.PopObject<string>();
         }
         
-        public T GetObjectValue<T>(CompEnvironment context) where T : class
+        public T GetObjectValue<T>(Evaluator evaluator) where T : class
         {
-            var valueInfo = Evaluate(context);
+            var valueInfo = Evaluate(evaluator);
             if (valueInfo.ValueType != EValueType.Obj)
                 throw new Exception($"Invalid return type: {EValueType.Obj} expected, {valueInfo.ValueType} given.");
-            return context.EvaluationStack.PopObject<T>();
+            return evaluator.EvaluationStack.PopObject<T>();
         }
     }
 }

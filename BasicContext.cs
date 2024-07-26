@@ -2,18 +2,13 @@
 
 namespace CompDevLib.Interpreter
 {
-    public class BasicContext : ICompInterpreterContext<BasicContext>
+    public class BasicContext : IInterpreterContext<BasicContext>
     {
-        public CompEnvironment Environment => _compEnv;
-        private CompEnvironment _compEnv;
-        private CompInstruction<BasicContext> _currInstruction;
+        public Evaluator Evaluator { get; } = new();
 
-        public BasicContext()
-        {
-            _compEnv = new CompEnvironment();
-        }
+        private Instruction<BasicContext> _currInstruction;
 
-        public void OnExecuteInstruction(CompInstruction<BasicContext> instruction)
+        public void OnExecuteInstruction(Instruction<BasicContext> instruction)
         {
             _currInstruction = instruction;
         }
@@ -22,7 +17,7 @@ namespace CompDevLib.Interpreter
         {
         }
 
-        public CompInstruction<BasicContext> GetExecutingInstruction()
+        public Instruction<BasicContext> GetExecutingInstruction()
         {
             return _currInstruction;
         }

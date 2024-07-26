@@ -3,7 +3,7 @@
 namespace CompDevLib.Interpreter
 {
     public class StandardFunction<TContext> : IFunction<TContext> 
-        where TContext : ICompInterpreterContext<TContext>
+        where TContext : IInterpreterContext<TContext>
     {
         public delegate ValueInfo Function(TContext context, ASTNode[] parameters);
 

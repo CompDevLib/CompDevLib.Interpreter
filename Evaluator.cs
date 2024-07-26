@@ -7,7 +7,7 @@ using CompDevLib.Interpreter.Parse;
 
 namespace CompDevLib.Interpreter
 {
-    public class CompEnvironment
+    public class Evaluator
     {
         private object _currentOwner;
         public readonly EvaluationStack EvaluationStack = new();

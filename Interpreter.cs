@@ -6,7 +6,7 @@ using CompDevLib.Interpreter.Parse;
 
 namespace CompDevLib.Interpreter
 {
-    public class CompInterpreter<TContext> where TContext : ICompInterpreterContext<TContext>
+    public class Interpreter<TContext> where TContext : IInterpreterContext<TContext>
     {
         public readonly Dictionary<string, IFunction<TContext>> DefinedFunctions;
         public readonly Dictionary<string, IValueModifier<TContext>> DefinedValueModifiers;
@@ -73,7 +73,7 @@ namespace CompDevLib.Interpreter
         public bool OptimizeInstructionOnBuild;
         public TContext DefaultContext;
 
-        public CompInterpreter(bool optimizeInstructionOnBuild = true)
+        public Interpreter(bool optimizeInstructionOnBuild = true)
         {
             DefinedFunctions = new Dictionary<string, IFunction<TContext>>();
             DefinedValueModifiers = new Dictionary<string, IValueModifier<TContext>>();
@@ -86,7 +86,7 @@ namespace CompDevLib.Interpreter
             InitializePredefinedFunctions();
         }
         
-        public CompInterpreter(TContext defaultContext, bool optimizeInstructionOnBuild = true)
+        public Interpreter(TContext defaultContext, bool optimizeInstructionOnBuild = true)
         {
             DefinedFunctions = new Dictionary<string, IFunction<TContext>>();
             DefinedValueModifiers = new Dictionary<string, IValueModifier<TContext>>();
@@ -142,7 +142,7 @@ namespace CompDevLib.Interpreter
 
         public ValueInfo Execute(string instructionStr) => Execute(DefaultContext, instructionStr);
         public T Execute<T>(string instructionStr) => Execute<T>(DefaultContext, instructionStr);
-        public T Execute<T>(CompInstruction<TContext> instruction) => Execute<T>(DefaultContext, instruction);
+        public T Execute<T>(Instruction<TContext> instruction) => Execute<T>(DefaultContext, instruction);
         public T EvaluateExpression<T>(string expressionStr) => EvaluateExpression<T>(DefaultContext, expressionStr);
         
         public ValueInfo Execute(TContext context, string instructionStr)
@@ -153,16 +153,16 @@ namespace CompDevLib.Interpreter
 
         public T Execute<T>(TContext context, string instructionStr)
         {
-            var evaluationStack = context.Environment.EvaluationStack;
+            var evaluationStack = context.Evaluator.EvaluationStack;
             var instruction = BuildInstruction(context, instructionStr);
             var retValInfo = instruction.Execute(context);
             
             return GetResult<T>(evaluationStack, retValInfo, instructionStr);
         }
 
-        public T Execute<T>(TContext context, CompInstruction<TContext> instruction)
+        public T Execute<T>(TContext context, Instruction<TContext> instruction)
         {
-            var evaluationStack = context.Environment.EvaluationStack;
+            var evaluationStack = context.Evaluator.EvaluationStack;
             var retValInfo = instruction.Execute(context);
             
             return GetResult<T>(evaluationStack, retValInfo, instruction.ToString());
@@ -175,8 +175,8 @@ namespace CompDevLib.Interpreter
             var parsedResult = ParseParameters(tokens, 0);
             if (parsedResult.Length != 1)
                 throw new ArgumentException($"Unable to parse \"{expressionStr}\" as a single expression");
-            var result = parsedResult[0].Evaluate(context.Environment);
-            return GetResult<T>(context.Environment.EvaluationStack, result, expressionStr);
+            var result = parsedResult[0].Evaluate(context.Evaluator);
+            return GetResult<T>(context.Evaluator.EvaluationStack, result, expressionStr);
         }
 
         private T GetResult<T>(EvaluationStack evaluationStack, ValueInfo retValInfo, string instructionStr)
@@ -186,37 +186,37 @@ namespace CompDevLib.Interpreter
             {
                 case EValueType.Void:
                     if (expectedRetType != typeof(void))
-                        throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(void));
+                        throw InstructionRuntimeException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(void));
                     break;
                 case EValueType.Int:
                 {
                     var retVal = evaluationStack.PopUnmanaged<int>();
                     if (retVal is T parsedRetVal) return parsedRetVal;
-                    throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(int));
+                    throw InstructionRuntimeException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(int));
                 }
                 case EValueType.Float:
                 {
                     var retVal = evaluationStack.PopUnmanaged<float>();
                     if (retVal is T parsedRetVal) return parsedRetVal;
-                    throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(float));
+                    throw InstructionRuntimeException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(float));
                 }
                 case EValueType.Bool:
                 {
                     var retVal = evaluationStack.PopUnmanaged<bool>();
                     if (retVal is T parsedRetVal) return parsedRetVal;
-                    throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(bool));
+                    throw InstructionRuntimeException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(bool));
                 }
                 case EValueType.Str:
                 {
                     var retVal = evaluationStack.PopObject<string>();
                     if (retVal is T parsedRetVal) return parsedRetVal;
-                    throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(string));
+                    throw InstructionRuntimeException.CreateInvalidReturnType(instructionStr, expectedRetType, typeof(string));
                 }
                 case EValueType.Obj:
                 {
                     var retVal = evaluationStack.PopObject<object>();
                     if (retVal is T parsedRetVal) return parsedRetVal;
-                    throw CompInstructionException.CreateInvalidReturnType(instructionStr, expectedRetType, retVal.GetType());
+                    throw InstructionRuntimeException.CreateInvalidReturnType(instructionStr, expectedRetType, retVal.GetType());
                 }
             }
 
@@ -225,7 +225,7 @@ namespace CompDevLib.Interpreter
         #endregion
         
         #region Parsing
-        public CompInstruction<TContext> BuildInstruction(TContext context, string instructionStr)
+        public Instruction<TContext> BuildInstruction(TContext context, string instructionStr)
         {
             _lexer.Process(instructionStr);
             var tokens = _lexer.GetTokens();
@@ -242,12 +242,12 @@ namespace CompDevLib.Interpreter
             
             var parameters = ParseParameters(tokens, 1);
             
-            var instruction = new CompInstruction<TContext>(instructionStr, func, parameters, Array.Empty<IValueModifier<TContext>>());
+            var instruction = new Instruction<TContext>(instructionStr, func, parameters, Array.Empty<IValueModifier<TContext>>());
             if(OptimizeInstructionOnBuild) instruction.Optimize(context);
             return instruction;
         }
         
-        public CompInstruction<TContext> BuildInstruction(TContext context, string funcIdentifier, string paramStr, string modifierStr = null)
+        public Instruction<TContext> BuildInstruction(TContext context, string funcIdentifier, string paramStr, string modifierStr = null)
         {
             if (!DefinedFunctions.TryGetValue(funcIdentifier, out var func))
                 throw new ArgumentException($"Undefined function {funcIdentifier}.");
@@ -260,12 +260,12 @@ namespace CompDevLib.Interpreter
             tokens = _lexer.GetTokens();
             var modifiers = ParseValueModifiers(tokens, 0);
 
-            var instruction = new CompInstruction<TContext>($"{funcIdentifier}: {paramStr}", func, parameters, modifiers);
+            var instruction = new Instruction<TContext>($"{funcIdentifier}: {paramStr}", func, parameters, modifiers);
             if(OptimizeInstructionOnBuild) instruction.Optimize(context);
             return instruction;
         }
 
-        public CompInstruction<TContext> BuildInstruction(TContext context, string funcIdentifier,
+        public Instruction<TContext> BuildInstruction(TContext context, string funcIdentifier,
             params string[] parameterStrings)
         {
             if (!DefinedFunctions.TryGetValue(funcIdentifier, out var func))
@@ -285,7 +285,7 @@ namespace CompDevLib.Interpreter
                 }
             }
             
-            var instruction = new CompInstruction<TContext>(funcIdentifier, func, parameters, null);
+            var instruction = new Instruction<TContext>(funcIdentifier, func, parameters, null);
             if(OptimizeInstructionOnBuild) instruction.Optimize(context);
             return instruction;
         }
@@ -475,14 +475,14 @@ namespace CompDevLib.Interpreter
         {
             public static ValueInfo Print(TContext context, ASTNode[] parameters)
             {
-                var param0Str = parameters[0].GetAnyValue(context.Environment);
+                var param0Str = parameters[0].GetAnyValue(context.Evaluator);
                 System.Console.WriteLine(param0Str?.ToString() ?? "null");
                 return ValueInfo.Void;
             }
 
             public static ValueInfo Evaluate(TContext context, ASTNode[] parameters)
             {
-                return parameters[0].Evaluate(context.Environment);
+                return parameters[0].Evaluate(context.Evaluator);
             }
         }
     }

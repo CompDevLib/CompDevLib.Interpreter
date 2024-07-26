@@ -2,8 +2,8 @@ namespace CompDevLib.Interpreter
 {
     public interface IValueSelector
     {
-        public delegate ValueInfo SelectValueFunc(CompEnvironment context, string value);
-        ValueInfo SelectValue(CompEnvironment compEnvironment, string identifier);
+        public delegate ValueInfo SelectValueFunc(Evaluator context, string value);
+        ValueInfo SelectValue(Evaluator evaluator, string identifier);
     }
     
     public class ValueSelector : IValueSelector
@@ -15,9 +15,9 @@ namespace CompDevLib.Interpreter
             _func = func;
         }
 
-        public ValueInfo SelectValue(CompEnvironment compEnvironment, string identifier)
+        public ValueInfo SelectValue(Evaluator evaluator, string identifier)
         {
-            return _func?.Invoke(compEnvironment, identifier) ?? ValueInfo.Void;
+            return _func?.Invoke(evaluator, identifier) ?? ValueInfo.Void;
         }
 
         public bool EqualsToFunc(IValueSelector.SelectValueFunc func) => func == _func;

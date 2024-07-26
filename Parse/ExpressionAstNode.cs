@@ -13,27 +13,27 @@ namespace CompDevLib.Interpreter.Parse
             Operands = operands;
         }
 
-        public override ValueInfo Evaluate(CompEnvironment context)
+        public override ValueInfo Evaluate(Evaluator evaluator)
         {
             switch (Operands.Length)
             {
                 case 1:
-                    return context.Evaluate(OpCode, Operands[0]);
+                    return evaluator.Evaluate(OpCode, Operands[0]);
                 case 2:
-                    return context.Evaluate(OpCode, Operands[0], Operands[1]);
+                    return evaluator.Evaluate(OpCode, Operands[0], Operands[1]);
                 case 3:
-                    return context.Evaluate(OpCode, Operands[0], Operands[1], Operands[2]);
+                    return evaluator.Evaluate(OpCode, Operands[0], Operands[1], Operands[2]);
                 default:
                     throw new EvaluationException(OpCode, Operands.Length);
             }
         }
 
-        public override ASTNode Optimize(CompEnvironment context)
+        public override ASTNode Optimize(Evaluator evaluator)
         {
             bool isConstValue = true;
             for (int i = 0; i < Operands.Length; i++)
             {
-                var optimizedNode = Operands[i].Optimize(context);
+                var optimizedNode = Operands[i].Optimize(evaluator);
                 if (!optimizedNode.IsConstValue())
                     isConstValue = false;
                 Operands[i] = optimizedNode;
@@ -41,8 +41,8 @@ namespace CompDevLib.Interpreter.Parse
 
             if (!isConstValue) return this;
             
-            var result = Evaluate(context);
-            var evaluationStack = context.EvaluationStack;
+            var result = Evaluate(evaluator);
+            var evaluationStack = evaluator.EvaluationStack;
             return result.ValueType switch
             {
                 EValueType.Int => new IntValueAstNode(evaluationStack.PopUnmanaged<int>()),

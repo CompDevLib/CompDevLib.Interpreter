@@ -285,7 +285,7 @@ namespace CompDevLib.Interpreter
                 }
             }
             
-            var instruction = new Instruction<TContext>(funcIdentifier, func, parameters, null);
+            var instruction = new Instruction<TContext>(funcIdentifier, func, parameters, Array.Empty<IValueModifier<TContext>>());
             if(OptimizeInstructionOnBuild) instruction.Optimize(context);
             return instruction;
         }

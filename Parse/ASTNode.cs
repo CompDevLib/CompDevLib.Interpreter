@@ -34,25 +34,8 @@ namespace CompDevLib.Interpreter.Parse
         
         public object GetAnyValue(Evaluator evaluator, Type typeHint)
         {
-            var valueInfo = Evaluate(evaluator);
-            switch (valueInfo.ValueType)
-            {
-                case EValueType.Int:
-                    return evaluator.EvaluationStack.PopUnmanaged<int>();
-                case EValueType.Float:
-                    return evaluator.EvaluationStack.PopUnmanaged<float>();
-                case EValueType.Bool:
-                    return evaluator.EvaluationStack.PopUnmanaged<bool>();
-                case EValueType.Str:
-                    return evaluator.EvaluationStack.PopObject<string>();
-                case EValueType.Obj:
-                    var obj = evaluator.EvaluationStack.PopObject<object>();
-                    if (obj is IFormatProvider formatProvider)
-                        return formatProvider.GetFormat(typeHint);
-                    return obj;
-                default:
-                    return null;
-            }
+            var value = GetAnyValue(evaluator);
+            return evaluator.ConvertValue(value, typeHint);
         }
 
         public string GetAnyValueAsString(Evaluator evaluator)

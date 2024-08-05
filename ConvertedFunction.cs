@@ -32,9 +32,9 @@ namespace CompDevLib.Interpreter
         {
             Name = name;
             Function = function.Method;
-            var parameters = function.Method.GetParameters();
-            _paramObjects = new object[parameters.Length];
-            NeedContext = parameters.Length > 0 && parameters[0].ParameterType == typeof(TContext);
+            _paramInfos = function.Method.GetParameters();
+            _paramObjects = new object[_paramInfos.Length];
+            NeedContext = _paramInfos.Length > 0 && _paramInfos[0].ParameterType == typeof(TContext);
             ReturnValueType = Utilities.ParseValueType(function.Method.ReturnType);
         }
 
@@ -55,8 +55,6 @@ namespace CompDevLib.Interpreter
                 for (int i = 0; i < parameters.Length; i++)
                     _paramObjects[i] = parameters[i].GetAnyValue(context.Evaluator, _paramInfos[i].ParameterType);
             }
-            // TODO: Type conversion here is pretty slow and unnecessary for most cases, so it is not supported for now.
-            //Convert.ChangeType(parameters[i].GetAnyValue(context.Environment), parameterInfos[i].ParameterType);
             
             // execution
             var result = Function.Invoke(null, _paramObjects);

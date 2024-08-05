@@ -12,15 +12,46 @@ namespace CompDevLib.Interpreter
         private object _currentOwner;
         public readonly EvaluationStack EvaluationStack = new();
         private readonly List<IValueSelector> _valueSelectors = new();
+        private readonly Dictionary<Type, Dictionary<Type, Func<object, object>>> _typeConverters = new();
 
         public T CurrentOwnerAs<T>()
         {
             return (T)_currentOwner;
         }
 
+        public void RegisterTypeConversion(Type srcType, Type dstType, Func<object, object> typeConversion)
+        {
+            if (!_typeConverters.TryGetValue(srcType, out var conversions))
+            {
+                conversions = new Dictionary<Type, Func<object, object>>();
+                _typeConverters.Add(srcType, conversions);
+            }
+            conversions.Add(dstType, typeConversion);
+        }
+
+        public void UnregisterTypeConversion(Type srcType, Type dstType)
+        {
+            if (!_typeConverters.TryGetValue(srcType, out var conversions)) return;
+            conversions.Remove(dstType);
+        }
+        
         public void RegisterValueSelector(IValueSelector.SelectValueFunc selectValueFunc)
         {
             _valueSelectors.Add(new ValueSelector(selectValueFunc));
+        }
+
+        public object ConvertValue(object obj, Type dstType)
+        {
+            if (obj == null) return null;
+            
+            var srcType = obj.GetType();
+            if (dstType.IsAssignableFrom(srcType)) return obj;
+            
+            if (_typeConverters.TryGetValue(srcType, out var conversions) &&
+                conversions.TryGetValue(dstType, out var conversion))
+                return conversion.Invoke(obj);
+            
+            return Convert.ChangeType(obj, dstType);
         }
 
         public void RegisterValueSelector(IValueSelector valueSelector)

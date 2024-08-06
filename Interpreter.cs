@@ -265,13 +265,12 @@ namespace CompDevLib.Interpreter
             return instruction;
         }
 
-        public Instruction<TContext> BuildInstruction(TContext context, string funcIdentifier,
-            params string[] parameterStrings)
+        public Instruction<TContext> BuildInstruction(TContext context, string funcIdentifier, string[] parameterStrings)
         {
             if (!DefinedFunctions.TryGetValue(funcIdentifier, out var func))
                 throw new ArgumentException($"Undefined function {funcIdentifier}.");
 
-            ASTNode[] parameters = null;
+            ASTNode[] parameters = Array.Empty<ASTNode>();
             
             if (parameterStrings != null && parameterStrings.Length > 0)
             {

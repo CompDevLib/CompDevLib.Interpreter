@@ -382,7 +382,9 @@ namespace CompDevLib.Interpreter
                 {
                     if (_specialUnary.TryGetValue(token.TokenType, out var specialUnaryToken))
                     {
-                        if (i == index || tokens[i - 1].TokenType == ETokenType.OPEN_PR)
+                        if (i == index || 
+                            tokens[i - 1].TokenType == ETokenType.OPEN_PR ||
+                            _opCodes.ContainsKey(tokens[i - 1].TokenType))
                         {
                             token.TokenType = specialUnaryToken;
                             operatorInfo = _opCodes[specialUnaryToken];

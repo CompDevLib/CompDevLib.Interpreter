@@ -65,9 +65,21 @@ namespace CompDevLib.Interpreter
             {ETokenType.ADD, ETokenType.POS},
             {ETokenType.SUB, ETokenType.NEG},
         };
+        
+        
+        private class ExpressionParserScope
+        {
+            public readonly Stack<ASTNode> NodeStack = new Stack<ASTNode>();
+            public readonly Stack<Token> OperatorTokenStack = new Stack<Token>();
 
-        private readonly Stack<Token> _operatorTokenStack;
-        private readonly Stack<ASTNode> _nodeStack;
+            public void Clear()
+            {
+                NodeStack.Clear();
+                OperatorTokenStack.Clear();
+            }
+        }
+        private readonly List<ExpressionParserScope> _scopePool;
+
         private readonly List<ASTNode> _result;
         private readonly List<IValueModifier<TContext>> _modifiers;
         public bool OptimizeInstructionOnBuild;
@@ -77,9 +89,8 @@ namespace CompDevLib.Interpreter
         {
             DefinedFunctions = new Dictionary<string, IFunction<TContext>>();
             DefinedValueModifiers = new Dictionary<string, IValueModifier<TContext>>();
+            _scopePool = new List<ExpressionParserScope>();
             _lexer = new Lexer();
-            _operatorTokenStack = new Stack<Token>();
-            _nodeStack = new Stack<ASTNode>();
             _result = new List<ASTNode>();
             _modifiers = new List<IValueModifier<TContext>>();
             OptimizeInstructionOnBuild = optimizeInstructionOnBuild;
@@ -90,9 +101,8 @@ namespace CompDevLib.Interpreter
         {
             DefinedFunctions = new Dictionary<string, IFunction<TContext>>();
             DefinedValueModifiers = new Dictionary<string, IValueModifier<TContext>>();
+            _scopePool = new List<ExpressionParserScope>();
             _lexer = new Lexer();
-            _operatorTokenStack = new Stack<Token>();
-            _nodeStack = new Stack<ASTNode>();
             _result = new List<ASTNode>();
             OptimizeInstructionOnBuild = optimizeInstructionOnBuild;
             DefaultContext = defaultContext;
@@ -274,14 +284,17 @@ namespace CompDevLib.Interpreter
             
             if (parameterStrings != null && parameterStrings.Length > 0)
             {
+                var scope = GetExpressionParserScope();
                 parameters = new ASTNode[parameterStrings.Length];
                 for (int i = 0; i < parameterStrings.Length; i++)
                 {
                     _lexer.Process(parameterStrings[i]);
                     var tokens = _lexer.GetTokens();
                     int beginIndex = 0;
-                    parameters[i] = ParseExpression(tokens, ref beginIndex);
+                    parameters[i] = ParseExpression(scope, tokens, ref beginIndex);
+                    scope.Clear();
                 }
+                ReturnExpressionParserScope(scope);
             }
             
             var instruction = new Instruction<TContext>(funcIdentifier, func, parameters, Array.Empty<IValueModifier<TContext>>());
@@ -299,15 +312,18 @@ namespace CompDevLib.Interpreter
         private ASTNode[] ParseParameters(IReadOnlyList<Token> tokens, int beginIndex)
         {
             if (beginIndex >= tokens.Count) return Array.Empty<ASTNode>();
-            
+
+            var scope = GetExpressionParserScope();
             _result.Clear();
             var index = beginIndex;
             for (;;)
             {
-                var node = ParseExpression(tokens, ref index);
+                var node = ParseExpression(scope, tokens, ref index);
+                scope.Clear();
                 if(node == null) break;
                 _result.Add(node);
             }
+            ReturnExpressionParserScope(scope);
             return _result.ToArray();
         }
 
@@ -340,41 +356,37 @@ namespace CompDevLib.Interpreter
             return _modifiers.ToArray();
         }
 
-        private ASTNode ParseExpression(IReadOnlyList<Token> tokens, ref int index)
+        private ASTNode ParseExpression(ExpressionParserScope parserScope, IReadOnlyList<Token> tokens, ref int index)
         {
             if (index >= tokens.Count) return null;
-            
-            _nodeStack.Clear();
-            _operatorTokenStack.Clear();
-            
             for (int i = index; i < tokens.Count; i++)
             {
                 var token = tokens[i];
                 if (token.TokenType == ETokenType.OPEN_PR)
                 {
-                    _operatorTokenStack.Push(token);
+                    parserScope.OperatorTokenStack.Push(token);
                 }
                 else if (token.TokenType == ETokenType.CLOSE_PR)
                 {
-                    var topOperator = _operatorTokenStack.Pop();
+                    var topOperator = parserScope.OperatorTokenStack.Pop();
                     while (topOperator.TokenType != ETokenType.OPEN_PR)
                     {
-                        _nodeStack.Push(BuildExpressionNode(topOperator));
-                        topOperator = _operatorTokenStack.Pop();
+                        parserScope.NodeStack.Push(BuildExpressionNode(parserScope, topOperator));
+                        topOperator = parserScope.OperatorTokenStack.Pop();
                     }
                     // TODO: Handle function on top of stack
                 }
                 else if (token.TokenType == ETokenType.COMMA)
                 {
-                    while (_operatorTokenStack.Count > 0)
+                    while (parserScope.OperatorTokenStack.Count > 0)
                     {
-                        var topOperator = _operatorTokenStack.Pop();
-                        _nodeStack.Push(BuildExpressionNode(topOperator));
+                        var topOperator = parserScope.OperatorTokenStack.Pop();
+                        parserScope.NodeStack.Push(BuildExpressionNode(parserScope, topOperator));
                     }
                     
-                    var topNode = _nodeStack.Pop();
-                    if (_nodeStack.Count != 0)
-                        throw new Exception($"node stack is not empty with {_nodeStack.Count} elements.");
+                    var topNode = parserScope.NodeStack.Pop();
+                    if (parserScope.NodeStack.Count != 0)
+                        throw new Exception($"node stack is not empty with {parserScope.NodeStack.Count} elements.");
                     index = i + 1;
                     return topNode;
                 }
@@ -390,9 +402,9 @@ namespace CompDevLib.Interpreter
                             operatorInfo = _opCodes[specialUnaryToken];
                         }
                     }
-                    while (_operatorTokenStack.Count > 0)
+                    while (parserScope.OperatorTokenStack.Count > 0)
                     {
-                        var topOperator = _operatorTokenStack.Peek();
+                        var topOperator = parserScope.OperatorTokenStack.Peek();
                         if(topOperator.TokenType == ETokenType.OPEN_PR)
                             break;
                     
@@ -401,30 +413,30 @@ namespace CompDevLib.Interpreter
                             (operatorInfo.Precedence == topOperatorInfo.Precedence &&
                              operatorInfo.LeftAssociative))
                         {
-                            _operatorTokenStack.Pop();
-                            _nodeStack.Push(BuildExpressionNode(topOperator));
+                            parserScope.OperatorTokenStack.Pop();
+                            parserScope.NodeStack.Push(BuildExpressionNode(parserScope, topOperator));
                             continue;
                         }
                         break;
                     }
 
-                    _operatorTokenStack.Push(token);
+                    parserScope.OperatorTokenStack.Push(token);
                 }
                 else if (_values.ContainsKey(token.TokenType))
-                    _nodeStack.Push(BuildValueNode(token));
+                    parserScope.NodeStack.Push(BuildValueNode(token));
                 else
                     throw new Exception($"Unable to process token of type {token.TokenType} at the given position.");
             }
 
-            while (_operatorTokenStack.Count > 0)
+            while (parserScope.OperatorTokenStack.Count > 0)
             {
-                var topOperator = _operatorTokenStack.Pop();
-                _nodeStack.Push(BuildExpressionNode(topOperator));
+                var topOperator = parserScope.OperatorTokenStack.Pop();
+                parserScope.NodeStack.Push(BuildExpressionNode(parserScope, topOperator));
             }
 
-            var paramNode = _nodeStack.Pop();
-            if (_nodeStack.Count != 0)
-                throw new Exception($"node stack is not empty with {_nodeStack.Count} elements.");
+            var paramNode = parserScope.NodeStack.Pop();
+            if (parserScope.NodeStack.Count != 0)
+                throw new Exception($"node stack is not empty with {parserScope.NodeStack.Count} elements.");
             index = tokens.Count;
             return paramNode;
         }
@@ -462,14 +474,33 @@ namespace CompDevLib.Interpreter
             throw new ArgumentException($"Invalid token type as value: {token.TokenType}");
         }
 
-        private ASTNode BuildExpressionNode(Token operatorToken)
+        private ASTNode BuildExpressionNode(ExpressionParserScope parserScope, Token operatorToken)
         {
             var operatorInfo = _opCodes[operatorToken.TokenType];
             var operands = new ASTNode[operatorInfo.OperandCount];
             for (int i = operatorInfo.OperandCount - 1; i >= 0; i--)
-                operands[i] = _nodeStack.Pop();
+                operands[i] = parserScope.NodeStack.Pop();
             return new ExpressionAstNode(operatorInfo.OpCode, operands);
         }
+        #endregion
+        
+        #region ExpressionParserScope
+
+        private ExpressionParserScope GetExpressionParserScope()
+        {
+            var lastIndex = _scopePool.Count - 1;
+            if (lastIndex < 0) return new ExpressionParserScope();
+            var scope = _scopePool[lastIndex];
+            _scopePool.RemoveAt(lastIndex);
+            return scope;
+        }
+
+        private void ReturnExpressionParserScope(ExpressionParserScope scope)
+        {
+            scope.Clear();
+            _scopePool.Add(scope);
+        }
+        
         #endregion
 
         private static class PredefinedFunctions

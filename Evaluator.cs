@@ -13,12 +13,28 @@ namespace CompDevLib.Interpreter
         public readonly EvaluationStack EvaluationStack = new();
         private readonly List<IValueSelector> _valueSelectors = new();
         private readonly Dictionary<Type, Dictionary<Type, Func<object, object>>> _typeConverters = new();
+        private readonly Dictionary<string, IObjectInitializer> _objectInitializers = new ();
 
         public T CurrentOwnerAs<T>()
         {
             return (T)_currentOwner;
         }
+        
+        #region ObjectInitializer
 
+        public void RegisterObjectInitializer(string typeIdentifier, IObjectInitializer initializer)
+        {
+            _objectInitializers.Add(typeIdentifier, initializer);
+        }
+
+        public void UnregisterObjectInitializer(string typeIdentifier)
+        {
+            _objectInitializers.Remove(typeIdentifier);
+        }
+        
+        #endregion
+
+        #region TypeConversion
         public void RegisterTypeConversion(Type srcType, Type dstType, Func<object, object> typeConversion)
         {
             if (!_typeConverters.TryGetValue(srcType, out var conversions))
@@ -34,11 +50,6 @@ namespace CompDevLib.Interpreter
             if (!_typeConverters.TryGetValue(srcType, out var conversions)) return;
             conversions.Remove(dstType);
         }
-        
-        public void RegisterValueSelector(IValueSelector.SelectValueFunc selectValueFunc)
-        {
-            _valueSelectors.Add(new ValueSelector(selectValueFunc));
-        }
 
         public object ConvertValue(object obj, Type dstType)
         {
@@ -53,7 +64,15 @@ namespace CompDevLib.Interpreter
             
             return Convert.ChangeType(obj, dstType);
         }
+        #endregion
+        
 
+        #region ValueSelection
+        public void RegisterValueSelector(IValueSelector.SelectValueFunc selectValueFunc)
+        {
+            _valueSelectors.Add(new ValueSelector(selectValueFunc));
+        }
+        
         public void RegisterValueSelector(IValueSelector valueSelector)
         {
             _valueSelectors.Add(valueSelector);
@@ -99,6 +118,7 @@ namespace CompDevLib.Interpreter
 
             throw new ArgumentOutOfRangeException(nameof(key), $"Unable to select value with key: {key}");
         }
+        #endregion
 
         #region Evaluate Operation
         public ValueInfo Evaluate(EOpCode opCode, ASTNode operand)
@@ -128,6 +148,13 @@ namespace CompDevLib.Interpreter
         
         public ValueInfo Evaluate(EOpCode opCode, ASTNode operandA, ASTNode operandB)
         {
+            if (opCode == EOpCode.Assign)
+            {
+                if (operandA is not VariableAstNode)
+                    throw new EvaluationException(opCode, operandA, operandB);
+                return operandB.Evaluate(this);
+            }
+            
             var valueInfoA = operandA.Evaluate(this);
             switch (valueInfoA.ValueType)
             {
@@ -479,6 +506,24 @@ namespace CompDevLib.Interpreter
                     throw new EvaluationException(opCode, val.GetType());
             }
         }
+        
+        public ValueInfo Evaluate(string typeIdentifier, ASTNode[] fields)
+        {
+            if (!_objectInitializers.TryGetValue(typeIdentifier, out var initializer))
+                throw new EvaluationException($"Failed to initialize object of type {typeIdentifier}.");
+
+            var instance = initializer.CreateInstance();
+            foreach (var field in fields)
+            {
+                var expressionNode = (ExpressionAstNode) field;
+                var fieldName = ((VariableAstNode) expressionNode.Operands[0]).Identifier;
+                var fieldValue = expressionNode.Operands[1].GetAnyValue(this);
+                initializer.SetField(instance, fieldName, fieldValue);
+            }
+
+            return PushEvaluationResult(instance);
+        }
+        
         #endregion
 
         #region Evaluation Result

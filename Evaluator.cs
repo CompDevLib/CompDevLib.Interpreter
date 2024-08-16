@@ -12,7 +12,8 @@ namespace CompDevLib.Interpreter
         private object _currentOwner;
         public readonly EvaluationStack EvaluationStack = new();
         private readonly List<IValueSelector> _valueSelectors = new();
-        private readonly Dictionary<Type, Dictionary<Type, Func<object, object>>> _typeConverters = new();
+        private readonly Dictionary<Type, Dictionary<Type, IStackTopValueConverter>> _stackTopValueConverters = new();
+        private readonly Dictionary<Type, Dictionary<Type, IValueConverter>> _valueConverters = new();
         private readonly Dictionary<string, IObjectInitializer> _objectInitializers = new ();
 
         public T CurrentOwnerAs<T>()
@@ -35,19 +36,39 @@ namespace CompDevLib.Interpreter
         #endregion
 
         #region TypeConversion
-        public void RegisterTypeConversion(Type srcType, Type dstType, Func<object, object> typeConversion)
+
+        public void RegisterValueConversion(Type srcType, Type dstType, IStackTopValueConverter valueConverter)
         {
-            if (!_typeConverters.TryGetValue(srcType, out var conversions))
+            if (!_stackTopValueConverters.TryGetValue(srcType, out var conversions))
             {
-                conversions = new Dictionary<Type, Func<object, object>>();
-                _typeConverters.Add(srcType, conversions);
+                conversions = new Dictionary<Type, IStackTopValueConverter>();
+                _stackTopValueConverters.Add(srcType, conversions);
             }
-            conversions.Add(dstType, typeConversion);
+            conversions.Add(dstType, valueConverter);
         }
 
-        public void UnregisterTypeConversion(Type srcType, Type dstType)
+        public void RegisterValueConversion(Type srcType, Type dstType, StackTopValueConverter.Conversion valueConversion)
         {
-            if (!_typeConverters.TryGetValue(srcType, out var conversions)) return;
+            RegisterValueConversion(srcType, dstType, new StackTopValueConverter(valueConversion));
+        }
+
+        public void RegisterValueConversion(Type srcType, Type dstType, IValueConverter valueConverter)
+        {
+            if (!_valueConverters.TryGetValue(srcType, out var conversions))
+            {
+                conversions = new Dictionary<Type, IValueConverter>();
+                _valueConverters.Add(srcType, conversions);
+            }
+            conversions.Add(dstType, valueConverter);
+        }
+        public void RegisterValueConversion(Type srcType, Type dstType, ValueConverter.Conversion valueConversion)
+        {
+            RegisterValueConversion(srcType, dstType, new ValueConverter(valueConversion));
+        }
+
+        public void UnregisterValueConversion(Type srcType, Type dstType)
+        {
+            if (!_valueConverters.TryGetValue(srcType, out var conversions)) return;
             conversions.Remove(dstType);
         }
 
@@ -58,12 +79,52 @@ namespace CompDevLib.Interpreter
             var srcType = obj.GetType();
             if (dstType.IsAssignableFrom(srcType)) return obj;
             
-            if (_typeConverters.TryGetValue(srcType, out var conversions) &&
-                conversions.TryGetValue(dstType, out var conversion))
-                return conversion.Invoke(obj);
+            if (_valueConverters.TryGetValue(srcType, out var converters) &&
+                converters.TryGetValue(dstType, out var converter))
+                return converter.Convert(obj);
             
             return Convert.ChangeType(obj, dstType);
         }
+
+        public ValueInfo ConvertValue(ValueInfo srcValueInfo, Type dstType)
+        {
+            var srcType = srcValueInfo.ValueType == EValueType.Obj
+                ? EvaluationStack.GetObject<object>(srcValueInfo.Offset)?.GetType() ?? typeof(object)
+                : srcValueInfo.ValueType.GetRuntimeType();
+            
+            if (_stackTopValueConverters.TryGetValue(srcType, out var converters) &&
+                converters.TryGetValue(dstType, out var converter))
+                return converter.Convert(this, srcValueInfo);
+            
+            return srcValueInfo;
+        }
+
+        public object PopTopValue(ValueInfo valueInfo)
+        {
+            return valueInfo.ValueType switch
+            {
+                EValueType.Int => EvaluationStack.PopUnmanaged<int>(),
+                EValueType.Float => EvaluationStack.PopUnmanaged<float>(),
+                EValueType.Bool => EvaluationStack.PopUnmanaged<bool>(),
+                EValueType.Str => EvaluationStack.PopObject<string>(),
+                EValueType.Obj => EvaluationStack.PopObject<object>(),
+                _ => null
+            };
+        }
+
+        public string PopTopValueAsString(ValueInfo valueInfo)
+        {
+            return valueInfo.ValueType switch
+            {
+                EValueType.Int => EvaluationStack.PopUnmanaged<int>().ToString(),
+                EValueType.Float => EvaluationStack.PopUnmanaged<float>().ToString(CultureInfo.InvariantCulture),
+                EValueType.Bool => EvaluationStack.PopUnmanaged<bool>().ToString(),
+                EValueType.Str => EvaluationStack.PopObject<string>(),
+                EValueType.Obj => EvaluationStack.PopObject<object>()?.ToString(),
+                _ => null
+            };
+        }
+        
         #endregion
         
 

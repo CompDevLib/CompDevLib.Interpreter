@@ -21,35 +21,21 @@ namespace CompDevLib.Interpreter.Parse
         public object GetAnyValue(Evaluator evaluator)
         {
             var valueInfo = Evaluate(evaluator);
-            return valueInfo.ValueType switch
-            {
-                EValueType.Int => evaluator.EvaluationStack.PopUnmanaged<int>(),
-                EValueType.Float => evaluator.EvaluationStack.PopUnmanaged<float>(),
-                EValueType.Bool => evaluator.EvaluationStack.PopUnmanaged<bool>(),
-                EValueType.Str => evaluator.EvaluationStack.PopObject<string>(),
-                EValueType.Obj => evaluator.EvaluationStack.PopObject<object>(),
-                _ => null
-            };
+            return evaluator.PopTopValue(valueInfo);
         }
         
         public object GetAnyValue(Evaluator evaluator, Type typeHint)
         {
-            var value = GetAnyValue(evaluator);
+            var valueInfo = Evaluate(evaluator);
+            var convertedInfo = evaluator.ConvertValue(valueInfo, typeHint);
+            var value = evaluator.PopTopValue(convertedInfo);
             return evaluator.ConvertValue(value, typeHint);
         }
 
         public string GetAnyValueAsString(Evaluator evaluator)
         {
             var valueInfo = Evaluate(evaluator);
-            return valueInfo.ValueType switch
-            {
-                EValueType.Int => evaluator.EvaluationStack.PopUnmanaged<int>().ToString(),
-                EValueType.Float => evaluator.EvaluationStack.PopUnmanaged<float>().ToString(CultureInfo.InvariantCulture),
-                EValueType.Bool => evaluator.EvaluationStack.PopUnmanaged<bool>().ToString(),
-                EValueType.Str => evaluator.EvaluationStack.PopObject<string>(),
-                EValueType.Obj => evaluator.EvaluationStack.PopObject<object>()?.ToString() ?? null,
-                _ => null
-            };
+            return evaluator.PopTopValueAsString(valueInfo);
         }
 
         public int GetIntValue(Evaluator evaluator)

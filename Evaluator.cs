@@ -82,6 +82,9 @@ namespace CompDevLib.Interpreter
             if (_valueConverters.TryGetValue(srcType, out var converters) &&
                 converters.TryGetValue(dstType, out var converter))
                 return converter.Convert(obj);
+
+            if (obj is IFormatProvider formatProvider)
+                return formatProvider.GetFormat(dstType);
             
             return Convert.ChangeType(obj, dstType);
         }

@@ -165,6 +165,9 @@ namespace CompDevLib.Interpreter
 
         public ValueInfo SelectValue(string key)
         {
+            if (_currentOwner is ICollection collection && key == "Count")
+                return PushEvaluationResult(collection.Count);
+            
             if (_currentOwner is IValueSelector valueSelector)
             {
                 var result = valueSelector.SelectValue(this, key);
@@ -176,11 +179,20 @@ namespace CompDevLib.Interpreter
             for (int i = _valueSelectors.Count - 1; i >= 0; i--)
             {
                 var result = _valueSelectors[i].SelectValue(this, key);
-                if (result.Offset >= 0)
-                    return result;
+                if (result.Offset < 0) continue;
+                
+                // non-indexing
+                if (result.ValueType != EValueType.Int || _currentOwner == null) return result;
+                
+                // get element at index
+                var index = EvaluationStack.PopUnmanaged<int>();
+                return EvaluateListElement(_currentOwner, index);
             }
 
-            throw new ArgumentOutOfRangeException(nameof(key), $"Unable to select value with key: {key}");
+            if(_currentOwner == null)
+                throw new ArgumentOutOfRangeException(nameof(key), $"Unable to select value with key: {key}");
+            else
+                throw new ArgumentOutOfRangeException(nameof(key), $"Unable to select member of {_currentOwner} with key: {key}");
         }
         #endregion
 

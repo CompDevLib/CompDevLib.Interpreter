@@ -8,6 +8,7 @@ namespace CompDevLib.Interpreter.Parse
         And, Or, Not, 
         Ternary,
         Member,
+        Index,
         Assign,
     }
 }

@@ -73,6 +73,14 @@ namespace CompDevLib.Interpreter
             ETokenType.CLOSE_BRACKET,
         };
         
+        private readonly HashSet<string> ElementTypeNames = new HashSet<string>()
+        {
+            "int",
+            "float",
+            "bool",
+            "string"
+        };
+        
         
         private class ExpressionParserScope
         {

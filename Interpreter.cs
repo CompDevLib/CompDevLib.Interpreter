@@ -6,6 +6,10 @@ using CompDevLib.Interpreter.Parse;
 
 namespace CompDevLib.Interpreter
 {
+    public class Interpreter : Interpreter<BasicContext>
+    {
+    }
+    
     public class Interpreter<TContext> where TContext : IInterpreterContext<TContext>
     {
         public readonly Dictionary<string, IFunction<TContext>> DefinedFunctions;
@@ -97,7 +101,8 @@ namespace CompDevLib.Interpreter
         }
         private readonly List<ExpressionParserScope> _scopePool;
         private readonly List<IValueModifier<TContext>> _modifiers;
-        public bool OptimizeInstructionOnBuild;
+        public readonly bool OptimizeInstructionOnBuild;
+        private readonly Evaluator _defaultEvaluator;
         public TContext DefaultContext;
 
         public Interpreter(bool optimizeInstructionOnBuild = true)
@@ -108,6 +113,9 @@ namespace CompDevLib.Interpreter
             _lexer = new Lexer();
             _modifiers = new List<IValueModifier<TContext>>();
             OptimizeInstructionOnBuild = optimizeInstructionOnBuild;
+            if (optimizeInstructionOnBuild)
+                _defaultEvaluator = new Evaluator();
+            
             InitializePredefinedFunctions();
         }
         
@@ -117,8 +125,12 @@ namespace CompDevLib.Interpreter
             DefinedValueModifiers = new Dictionary<string, IValueModifier<TContext>>();
             _scopePool = new List<ExpressionParserScope>();
             _lexer = new Lexer();
+            _modifiers = new List<IValueModifier<TContext>>();
             OptimizeInstructionOnBuild = optimizeInstructionOnBuild;
             DefaultContext = defaultContext;
+            if (optimizeInstructionOnBuild)
+                _defaultEvaluator = new Evaluator();
+
             InitializePredefinedFunctions();
         }
 
@@ -170,14 +182,14 @@ namespace CompDevLib.Interpreter
         
         public ValueInfo Execute(TContext context, string instructionStr)
         {
-            var instruction = BuildInstruction(context, instructionStr);
+            var instruction = BuildInstruction(instructionStr);
             return instruction.Execute(context);
         }
 
         public T Execute<T>(TContext context, string instructionStr)
         {
             var evaluationStack = context.Evaluator.EvaluationStack;
-            var instruction = BuildInstruction(context, instructionStr);
+            var instruction = BuildInstruction(instructionStr);
             var retValInfo = instruction.Execute(context);
             
             return GetResult<T>(evaluationStack, retValInfo, instructionStr);
@@ -249,7 +261,20 @@ namespace CompDevLib.Interpreter
         #endregion
         
         #region Parsing
-        public Instruction<TContext> BuildInstruction(TContext context, string instructionStr)
+
+        public ASTNode BuildExpression(string exprStr)
+        {
+            _lexer.Process(exprStr);
+            var tokens = _lexer.GetTokens();
+            var scope = GetExpressionParserScope();
+            var index = 0;
+            var result = ParseExpression(scope, tokens, ref index);
+            if (OptimizeInstructionOnBuild)
+                result = result.Optimize(_defaultEvaluator);
+            return result;
+        }
+        
+        public Instruction<TContext> BuildInstruction(string instructionStr)
         {
             _lexer.Process(instructionStr);
             var tokens = _lexer.GetTokens();
@@ -268,11 +293,11 @@ namespace CompDevLib.Interpreter
             var parameters = ParseParameters(tokens, ref beginIndex);
             
             var instruction = new Instruction<TContext>(instructionStr, func, parameters, Array.Empty<IValueModifier<TContext>>());
-            if(OptimizeInstructionOnBuild) instruction.Optimize(context);
+            if(OptimizeInstructionOnBuild) instruction.Optimize(_defaultEvaluator);
             return instruction;
         }
         
-        public Instruction<TContext> BuildInstruction(TContext context, string funcIdentifier, string paramStr, string modifierStr = null)
+        public Instruction<TContext> BuildInstruction(string funcIdentifier, string paramStr, string modifierStr = null)
         {
             if (!DefinedFunctions.TryGetValue(funcIdentifier, out var func))
                 throw new ArgumentException($"Undefined function {funcIdentifier}.");
@@ -287,11 +312,11 @@ namespace CompDevLib.Interpreter
             var modifiers = ParseValueModifiers(tokens, 0);
 
             var instruction = new Instruction<TContext>($"{funcIdentifier}: {paramStr}", func, parameters, modifiers);
-            if(OptimizeInstructionOnBuild) instruction.Optimize(context);
+            if(OptimizeInstructionOnBuild) instruction.Optimize(_defaultEvaluator);
             return instruction;
         }
 
-        public Instruction<TContext> BuildInstruction(TContext context, string funcIdentifier, string[] parameterStrings)
+        public Instruction<TContext> BuildInstruction(string funcIdentifier, string[] parameterStrings)
         {
             if (!DefinedFunctions.TryGetValue(funcIdentifier, out var func))
                 throw new ArgumentException($"Undefined function {funcIdentifier}.");
@@ -313,7 +338,7 @@ namespace CompDevLib.Interpreter
             }
             
             var instruction = new Instruction<TContext>(funcIdentifier, func, parameters, Array.Empty<IValueModifier<TContext>>());
-            if(OptimizeInstructionOnBuild) instruction.Optimize(context);
+            if(OptimizeInstructionOnBuild) instruction.Optimize(_defaultEvaluator);
             return instruction;
         }
 

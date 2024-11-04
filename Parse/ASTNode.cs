@@ -32,6 +32,11 @@ namespace CompDevLib.Interpreter.Parse
             return evaluator.ConvertValue(value, typeHint);
         }
 
+        public T GetAnyValue<T>(Evaluator evaluator)
+        {
+            return (T) GetAnyValue(evaluator, typeof(T));
+        }
+
         public string GetAnyValueAsString(Evaluator evaluator)
         {
             var valueInfo = Evaluate(evaluator);

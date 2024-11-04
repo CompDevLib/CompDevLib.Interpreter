@@ -80,11 +80,11 @@ namespace CompDevLib.Interpreter
             return default;
         }
         
-        public void Optimize(TContext context)
+        public void Optimize(Evaluator evaluator)
         {
             if(_parameters == null) return;
             for (int i = 0; i < _parameters.Length; i++)
-                _parameters[i] = _parameters[i].Optimize(context.Evaluator);
+                _parameters[i] = _parameters[i].Optimize(evaluator);
         }
 
         public override string ToString()

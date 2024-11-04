@@ -94,6 +94,8 @@ namespace CompDevLib.Interpreter
             var srcType = srcValueInfo.ValueType == EValueType.Obj
                 ? EvaluationStack.GetObject<object>(srcValueInfo.Offset)?.GetType() ?? typeof(object)
                 : srcValueInfo.ValueType.GetRuntimeType();
+
+            if (srcType == dstType) return srcValueInfo;
             
             if (_stackTopValueConverters.TryGetValue(srcType, out var converters) &&
                 converters.TryGetValue(dstType, out var converter))

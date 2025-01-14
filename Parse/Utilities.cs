@@ -8,7 +8,9 @@ namespace CompDevLib.Interpreter.Parse
         {
             if (type == typeof(void))
                 return EValueType.Void;
-            if (type == typeof(int))
+            if (type == typeof(int) || 
+                type == typeof(short) || 
+                type == typeof(sbyte))
                 return EValueType.Int;
             if (type == typeof(float))
                 return EValueType.Float;

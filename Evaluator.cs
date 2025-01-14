@@ -104,6 +104,28 @@ namespace CompDevLib.Interpreter
             return srcValueInfo;
         }
 
+        public void RemoveTopValue(ValueInfo valueInfo)
+        {
+            switch (valueInfo.ValueType)
+            {
+                case EValueType.Int:
+                    EvaluationStack.PopUnmanaged<int>();
+                    break;
+                case EValueType.Float:
+                    EvaluationStack.PopUnmanaged<float>();
+                    break;
+                case EValueType.Bool:
+                    EvaluationStack.PopUnmanaged<bool>();
+                    break;
+                case EValueType.Str:
+                    EvaluationStack.PopObject<string>();
+                    break;
+                case EValueType.Obj:
+                    EvaluationStack.PopObject<object>();
+                    break;
+            }
+        }
+
         public object PopTopValue(ValueInfo valueInfo)
         {
             return valueInfo.ValueType switch

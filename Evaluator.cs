@@ -85,6 +85,9 @@ namespace CompDevLib.Interpreter
 
             if (obj is IFormatProvider formatProvider)
                 return formatProvider.GetFormat(dstType);
+
+            if (dstType.IsEnum)
+                return Enum.ToObject(dstType, obj);
             
             return Convert.ChangeType(obj, dstType);
         }
@@ -139,6 +142,19 @@ namespace CompDevLib.Interpreter
             };
         }
 
+        public object GetValue(ValueInfo valueInfo)
+        {
+            return valueInfo.ValueType switch
+            {
+                EValueType.Int => EvaluationStack.GetUnmanaged<int>(valueInfo.Offset),
+                EValueType.Float => EvaluationStack.GetUnmanaged<float>(valueInfo.Offset),
+                EValueType.Bool => EvaluationStack.GetUnmanaged<bool>(valueInfo.Offset),
+                EValueType.Str => EvaluationStack.GetObject<string>(valueInfo.Offset),
+                EValueType.Obj => EvaluationStack.GetObject<object>(valueInfo.Offset),
+                _ => null
+            };
+        }
+
         public string PopTopValueAsString(ValueInfo valueInfo)
         {
             return valueInfo.ValueType switch
@@ -148,6 +164,19 @@ namespace CompDevLib.Interpreter
                 EValueType.Bool => EvaluationStack.PopUnmanaged<bool>().ToString(),
                 EValueType.Str => EvaluationStack.PopObject<string>(),
                 EValueType.Obj => EvaluationStack.PopObject<object>()?.ToString(),
+                _ => null
+            };
+        }
+
+        public string GetValueAsString(ValueInfo valueInfo)
+        {
+            return valueInfo.ValueType switch
+            {
+                EValueType.Int => EvaluationStack.GetUnmanaged<int>(valueInfo.Offset).ToString(),
+                EValueType.Float => EvaluationStack.GetUnmanaged<float>(valueInfo.Offset).ToString(CultureInfo.InvariantCulture),
+                EValueType.Bool => EvaluationStack.GetUnmanaged<bool>(valueInfo.Offset).ToString(),
+                EValueType.Str => EvaluationStack.GetObject<string>(valueInfo.Offset),
+                EValueType.Obj => EvaluationStack.GetObject<object>(valueInfo.Offset)?.ToString(),
                 _ => null
             };
         }
@@ -301,6 +330,17 @@ namespace CompDevLib.Interpreter
                 case EValueType.Bool:
                 {
                     var valueA = EvaluationStack.PopUnmanaged<bool>();
+
+                    // lazy evaluation
+                    if (valueA)
+                    {
+                        if (opCode == EOpCode.Or) return PushEvaluationResult(true);
+                    }
+                    else
+                    {
+                        if (opCode == EOpCode.And) return PushEvaluationResult(false);
+                    }
+
                     var valueInfoB = operandB.Evaluate(this);
                     if (valueInfoB.ValueType == EValueType.Bool)
                     {
@@ -367,6 +407,15 @@ namespace CompDevLib.Interpreter
                             var elementValueInfo = EvaluateListElement(_currentOwner, index);
                             _currentOwner = null;
                             return elementValueInfo;
+                        }
+                    }
+                    else
+                    {
+                        var valueInfoB = operandB.Evaluate(this);
+                        if (valueInfoB.ValueType == EValueType.Obj)
+                        {
+                            var valueB = EvaluationStack.PopObject<object>();
+                            return Evaluate(opCode, valueA, valueB);
                         }
                     }
                     break;
@@ -559,6 +608,19 @@ namespace CompDevLib.Interpreter
                     return PushEvaluationResult(valA != valB);
                 case EOpCode.Add:
                     return PushEvaluationResult(valA + valB);
+                default:
+                    throw new EvaluationException(opCode, valA.GetType(), valB.GetType());
+            }
+        }
+
+        private ValueInfo Evaluate(EOpCode opCode, object valA, object valB)
+        {
+            switch (opCode)
+            {
+                case EOpCode.Eq:
+                    return PushEvaluationResult(valA == valB);
+                case EOpCode.Ne:
+                    return PushEvaluationResult(valA != valB);
                 default:
                     throw new EvaluationException(opCode, valA.GetType(), valB.GetType());
             }

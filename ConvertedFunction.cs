@@ -63,9 +63,9 @@ namespace CompDevLib.Interpreter
             return ReturnValueType switch
             {
                 EValueType.Void => ValueInfo.Void,
-                EValueType.Int => context.Evaluator.PushEvaluationResult((int) result!),
-                EValueType.Float => context.Evaluator.PushEvaluationResult((float) result!),
-                EValueType.Bool => context.Evaluator.PushEvaluationResult((bool) result!),
+                EValueType.Int => context.Evaluator.PushEvaluationResult(Convert.ToInt32(result)),
+                EValueType.Float => context.Evaluator.PushEvaluationResult(Convert.ToSingle(result)),
+                EValueType.Bool => context.Evaluator.PushEvaluationResult(Convert.ToBoolean(result)),
                 EValueType.Str => context.Evaluator.PushEvaluationResult((string) result),
                 EValueType.Obj => context.Evaluator.PushEvaluationResult(result),
                 _ => throw new Exception("Impossible branch."),

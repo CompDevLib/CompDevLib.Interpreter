@@ -42,18 +42,32 @@ namespace CompDevLib.Interpreter
         {
             if (NeedContext)
             {
-                if (_paramObjects.Length != parameters.Length + 1)
-                    throw new ArgumentException($"Insufficient argument count: {_paramObjects.Length - 1} needed, {parameters.Length} given.");
                 _paramObjects[0] = context;
                 for (int i = 1; i < _paramObjects.Length; i++)
-                    _paramObjects[i] = parameters[i - 1].GetAnyValue(context.Evaluator, _paramInfos[i].ParameterType);
+                {
+                    var paramInfo = _paramInfos[i];
+                    if (parameters.Length >= i)
+                        _paramObjects[i] = parameters[i - 1].GetAnyValue(context.Evaluator, _paramInfos[i].ParameterType);
+                    else if (paramInfo.HasDefaultValue)
+                        _paramObjects[i] = paramInfo.DefaultValue;
+                    else
+                        throw new ArgumentException(
+                            $"Insufficient argument count: {_paramObjects.Length - 1} needed, {parameters.Length} given.");
+                }
             }
             else
             {
-                if (_paramObjects.Length != parameters.Length)
-                    throw new ArgumentException($"Insufficient argument count: {_paramObjects.Length} needed, {parameters.Length} given.");
-                for (int i = 0; i < parameters.Length; i++)
-                    _paramObjects[i] = parameters[i].GetAnyValue(context.Evaluator, _paramInfos[i].ParameterType);
+                for (int i = 0; i < _paramObjects.Length; i++)
+                {
+                    var paramInfo = _paramInfos[i];
+                    if (parameters.Length > i)
+                        _paramObjects[i] = parameters[i].GetAnyValue(context.Evaluator, _paramInfos[i].ParameterType);
+                    else if (paramInfo.HasDefaultValue)
+                        _paramObjects[i] = paramInfo.DefaultValue;
+                    else
+                        throw new ArgumentException(
+                            $"Insufficient argument count: {_paramObjects.Length} needed, {parameters.Length} given.");
+                }
             }
             
             // execution
@@ -63,9 +77,9 @@ namespace CompDevLib.Interpreter
             return ReturnValueType switch
             {
                 EValueType.Void => ValueInfo.Void,
-                EValueType.Int => context.Evaluator.PushEvaluationResult((int) result!),
-                EValueType.Float => context.Evaluator.PushEvaluationResult((float) result!),
-                EValueType.Bool => context.Evaluator.PushEvaluationResult((bool) result!),
+                EValueType.Int => context.Evaluator.PushEvaluationResult(Convert.ToInt32(result)),
+                EValueType.Float => context.Evaluator.PushEvaluationResult(Convert.ToSingle(result)),
+                EValueType.Bool => context.Evaluator.PushEvaluationResult(Convert.ToBoolean(result)),
                 EValueType.Str => context.Evaluator.PushEvaluationResult((string) result),
                 EValueType.Obj => context.Evaluator.PushEvaluationResult(result),
                 _ => throw new Exception("Impossible branch."),

@@ -102,23 +102,21 @@ namespace CompDevLib.Interpreter.Parse
             }
             return evaluator.PushEvaluationResult(instance);
         }
-        
+
+        public override bool IsConstValue()
+        {
+            return false;
+        }
+
         public override ASTNode Optimize(Evaluator evaluator)
         {
-            bool isConstValue = true;
             for (int i = 0; i < Elements.Length; i++)
             {
                 var optimizedNode = Elements[i].Optimize(evaluator);
-                if (!optimizedNode.IsConstValue())
-                    isConstValue = false;
                 Elements[i] = optimizedNode;
             }
 
-            if (!isConstValue) return this;
-            
-            Evaluate(evaluator);
-            var evaluationStack = evaluator.EvaluationStack;
-            return new ObjectValueAstNode(evaluationStack.PopObject<object>());
+            return this;
         }
     }
 
@@ -151,34 +149,24 @@ namespace CompDevLib.Interpreter.Parse
                 ? evaluator.Evaluate(TypeIdentifier, Fields)
                 : evaluator.PushEvaluationResult(Value);
         }
-        
+
+        public override bool IsConstValue()
+        {
+            return false;
+        }
+
         public override ASTNode Optimize(Evaluator evaluator)
         {
             if (TypeIdentifier == null)
                 return this;
             
-            bool isConstValue = true;
             for (int i = 0; i < Fields.Length; i++)
             {
                 var optimizedNode = Fields[i].Optimize(evaluator);
-                if (!optimizedNode.IsConstValue())
-                    isConstValue = false;
                 Fields[i] = (ExpressionAstNode) optimizedNode;
             }
 
-            if (!isConstValue) return this;
-            
-            var result = Evaluate(evaluator);
-            var evaluationStack = evaluator.EvaluationStack;
-            return result.ValueType switch
-            {
-                EValueType.Int => new IntValueAstNode(evaluationStack.PopUnmanaged<int>()),
-                EValueType.Float => new FloatValueAstNode(evaluationStack.PopUnmanaged<float>()),
-                EValueType.Bool => new BoolValueAstNode(evaluationStack.PopUnmanaged<bool>()),
-                EValueType.Str => new StringValueAstNode(evaluationStack.PopObject<string>()),
-                EValueType.Obj => new ObjectValueAstNode(evaluationStack.PopObject<object>()),
-                _ => this
-            };
+            return this;
         }
     }
 }

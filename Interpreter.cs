@@ -290,6 +290,9 @@ namespace CompDevLib.Interpreter
                 throw new ArgumentException($"Undefined function {funcIdentifierToken.Value}.");
 
             var beginIndex = 1;
+            if (tokens.Count > 1 && tokens[1].TokenType == ETokenType.COLON)
+                beginIndex++;
+
             var parameters = ParseParameters(tokens, ref beginIndex);
             
             var instruction = new Instruction<TContext>(instructionStr, func, parameters, Array.Empty<IValueModifier<TContext>>());

@@ -1,29 +1,28 @@
 using CompDevLib.Interpreter.Parse;
-using CompDevLib.Interpreter.Tokenization;
 
 namespace CompDevLib.Interpreter
 {
     public class Instruction<TContext> where TContext : IInterpreterContext<TContext>
     {
-        private readonly IFunction<TContext> _function;
-        private readonly ASTNode[] _parameters;
-        private readonly IValueModifier<TContext>[] _returnValueModifiers;
+        public readonly IFunction<TContext> Function;
+        public readonly ASTNode[] Parameters;
+        public readonly IValueModifier<TContext>[] ReturnValueModifiers;
         public readonly string InstructionStr;
 
         public Instruction(string instructionStr, IFunction<TContext> func, ASTNode[] parameters, IValueModifier<TContext>[] returnValueModifiers)
         {
             InstructionStr = instructionStr;
-            _function = func;
-            _parameters = parameters;
-            _returnValueModifiers = returnValueModifiers;
+            Function = func;
+            Parameters = parameters;
+            ReturnValueModifiers = returnValueModifiers;
         }
 
         public ValueInfo Execute(TContext context)
         {
-            context.OnExecuteInstruction(this);
-            var ret = _function.Invoke(context, _parameters);
-            for (int i = 0; i < _returnValueModifiers.Length; i++)
-                ret = _returnValueModifiers[i].ModifyValue(context, ret);
+            context.OnExecuteInstruction(this, Parameters);
+            var ret = Function.Invoke(context, Parameters);
+            for (int i = 0; i < ReturnValueModifiers.Length; i++)
+                ret = ReturnValueModifiers[i].ModifyValue(context, ret);
             context.OnInstructionEvaluated(ret);
             return ret;
         }
@@ -82,9 +81,9 @@ namespace CompDevLib.Interpreter
         
         public void Optimize(Evaluator evaluator)
         {
-            if(_parameters == null) return;
-            for (int i = 0; i < _parameters.Length; i++)
-                _parameters[i] = _parameters[i].Optimize(evaluator);
+            if(Parameters == null) return;
+            for (int i = 0; i < Parameters.Length; i++)
+                Parameters[i] = Parameters[i].Optimize(evaluator);
         }
 
         public override string ToString()

@@ -14,6 +14,7 @@ namespace CompDevLib.Interpreter
         private readonly List<IValueSelector> _valueSelectors = new();
         private readonly Dictionary<Type, Dictionary<Type, IStackTopValueConverter>> _stackTopValueConverters = new();
         private readonly Dictionary<Type, Dictionary<Type, IValueConverter>> _valueConverters = new();
+        private readonly Dictionary<Type, List<IFieldValueSelector>> _fieldValueSelectors = new();
         private readonly Dictionary<string, IObjectInitializer> _objectInitializers = new ();
 
         public T CurrentOwnerAs<T>()
@@ -229,6 +230,19 @@ namespace CompDevLib.Interpreter
                     $"Unable to select member of owner {_currentOwner} with key {key}");
             }
 
+            if (_currentOwner != null && 
+                _fieldValueSelectors.TryGetValue(_currentOwner.GetType(), out var valueSelectorList))
+            {
+                for (int i = valueSelectorList.Count - 1; i >= 0; i--)
+                {
+                    var result = valueSelectorList[i].SelectValue(_currentOwner, this, key);
+                    if (result.Offset < 0)
+                        continue;
+                    
+                    return result;
+                }
+            }
+
             for (int i = _valueSelectors.Count - 1; i >= 0; i--)
             {
                 var result = _valueSelectors[i].SelectValue(this, key);
@@ -247,6 +261,32 @@ namespace CompDevLib.Interpreter
             else
                 throw new ArgumentOutOfRangeException(nameof(key), $"Unable to select member of {_currentOwner} with key: {key}");
         }
+        #endregion
+
+        #region ValueSelection
+        
+        public void RegisterValueSelector(Type type, IFieldValueSelector valueSelector)
+        {
+            if(!_fieldValueSelectors.TryGetValue(type,  out var valueSelectorList))
+            {
+                valueSelectorList = new List<IFieldValueSelector>();
+                _fieldValueSelectors.Add(type, valueSelectorList);
+            }
+            valueSelectorList.Add(valueSelector);
+        }
+
+        public void UnregisterValueSelector(Type type, IFieldValueSelector valueSelector)
+        {
+            if(!_fieldValueSelectors.TryGetValue(type, out var valueSelectorList))
+                return;
+            for (int i = valueSelectorList.Count - 1; i >= 0; i--)
+            {
+                if (valueSelectorList[i] != valueSelector) continue;
+                valueSelectorList.RemoveAt(i);
+                return;
+            }
+        }
+
         #endregion
 
         #region Evaluate Operation

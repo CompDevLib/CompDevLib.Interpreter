@@ -8,7 +8,7 @@ namespace CompDevLib.Interpreter
 
         private Instruction<BasicContext> _currInstruction;
 
-        public void OnExecuteInstruction(Instruction<BasicContext> instruction)
+        public void OnExecuteInstruction(Instruction<BasicContext> instruction, ASTNode[] parameters)
         {
             _currInstruction = instruction;
         }

@@ -51,7 +51,7 @@ namespace CompDevLib.Interpreter
             {ETokenType.POW, new OperatorInfo(EOpCode.Pow, 2, 7)},
             {ETokenType.AND, new OperatorInfo(EOpCode.And, 2, 1)},
             {ETokenType.OR, new OperatorInfo(EOpCode.Or, 2, 1)},
-            {ETokenType.NOT, new OperatorInfo(EOpCode.Not, 1, 1)},
+            {ETokenType.NOT, new OperatorInfo(EOpCode.Not, 1, 8)},
             {ETokenType.TYPE_MEMBER, new OperatorInfo(EOpCode.Member, 2, 9)},
             {ETokenType.ASSIGN, new OperatorInfo(EOpCode.Assign, 2, 0)},
         };
